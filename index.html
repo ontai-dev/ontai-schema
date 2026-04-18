@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ONT Schema Specification</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: #F8F6FF;
+    color: #333333;
+    line-height: 1.6;
+    font-size: 16px;
+  }
+  a { color: #7B5EC0; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  header {
+    background: #7B5EC0;
+    color: #F8F6FF;
+    padding: 2rem 1rem;
+    text-align: center;
+  }
+  header h1 { font-size: 1.8rem; font-weight: 700; letter-spacing: -0.02em; }
+  header p { margin-top: 0.4rem; font-size: 1rem; opacity: 0.88; }
+  header .badge {
+    display: inline-block;
+    margin-top: 0.75rem;
+    background: rgba(255,255,255,0.18);
+    border: 1px solid rgba(255,255,255,0.35);
+    border-radius: 20px;
+    padding: 0.2rem 0.8rem;
+    font-size: 0.82rem;
+    letter-spacing: 0.04em;
+  }
+  nav {
+    background: #fff;
+    border-bottom: 1px solid #D9B8FF;
+    padding: 0.6rem 1rem;
+    display: flex;
+    gap: 1.5rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    font-size: 0.9rem;
+  }
+  nav a { color: #7B5EC0; font-weight: 500; }
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+  }
+  h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #7B5EC0;
+    margin: 2rem 0 0.75rem;
+    padding-bottom: 0.35rem;
+    border-bottom: 2px solid #D9B8FF;
+  }
+  h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #555;
+    margin: 1.5rem 0 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-size: 0.78rem;
+  }
+  .schema-list {
+    display: grid;
+    gap: 0.5rem;
+  }
+  .schema-item {
+    background: #fff;
+    border: 1px solid #D9B8FF;
+    border-radius: 6px;
+    padding: 0.65rem 1rem;
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+  }
+  .schema-item .kind {
+    font-weight: 600;
+    color: #7B5EC0;
+    white-space: nowrap;
+    min-width: 200px;
+    font-size: 0.92rem;
+  }
+  .schema-item .desc {
+    color: #555;
+    font-size: 0.88rem;
+  }
+  .schema-item a { color: #7B5EC0; font-size: 0.78rem; margin-left: auto; white-space: nowrap; padding-left: 1rem; }
+  .code-block {
+    background: #1e1e2e;
+    color: #cdd6f4;
+    border-radius: 8px;
+    padding: 1.1rem 1.2rem;
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    font-size: 0.82rem;
+    line-height: 1.55;
+    overflow-x: auto;
+    margin: 0.75rem 0;
+  }
+  .code-block .c { color: #6c7086; }
+  .code-block .s { color: #a6e3a1; }
+  .code-block .k { color: #cba6f7; }
+  .note {
+    background: #f0eaff;
+    border-left: 3px solid #7B5EC0;
+    padding: 0.75rem 1rem;
+    border-radius: 0 6px 6px 0;
+    font-size: 0.9rem;
+    margin: 0.75rem 0;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+    margin: 0.75rem 0;
+  }
+  th {
+    background: #f0eaff;
+    color: #7B5EC0;
+    font-weight: 600;
+    text-align: left;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #D9B8FF;
+  }
+  td {
+    padding: 0.45rem 0.75rem;
+    border: 1px solid #e8e0ff;
+    vertical-align: top;
+  }
+  tr:nth-child(even) td { background: #faf8ff; }
+  code {
+    background: #f0eaff;
+    color: #7B5EC0;
+    padding: 0.1em 0.35em;
+    border-radius: 3px;
+    font-size: 0.85em;
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  }
+  footer {
+    text-align: center;
+    padding: 2rem 1rem;
+    color: #888;
+    font-size: 0.85rem;
+    border-top: 1px solid #D9B8FF;
+    margin-top: 3rem;
+  }
+  footer a { color: #7B5EC0; }
+  @media (max-width: 600px) {
+    .schema-item { flex-direction: column; gap: 0.2rem; }
+    .schema-item .kind { min-width: unset; }
+    .schema-item a { margin-left: 0; padding-left: 0; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>The ONT Schema Specification</h1>
+  <p>OpenAPI JSON Schema standard for Operator Native Thinking</p>
+  <span class="badge">v1alpha1 &nbsp;&#x2022;&nbsp; alpha</span>
+</header>
+
+<nav>
+  <a href="#import">Import</a>
+  <a href="#shared">shared</a>
+  <a href="#domain-core">domain-core</a>
+  <a href="#seam-core">seam-core</a>
+  <a href="#app-core">app-core</a>
+  <a href="#stability">Stability</a>
+  <a href="https://github.com/ontai-dev/ontai-schema">GitHub</a>
+  <a href="https://ontai.dev">ontai.dev</a>
+</nav>
+
+<div class="container">
+
+  <h2 id="about">What This Is</h2>
+  <p>
+    This is the versioned, importable community standard that defines the contract surface
+    for every ONT platform layer. It covers shared reusable types, Layer 0 domain-core
+    abstract primitives, Seam Core infrastructure CRDs, and app-core application CRDs.
+  </p>
+  <p style="margin-top:0.5rem">
+    All schemas follow
+    <a href="https://json-schema.org/specification-links.html#2020-12">JSON Schema Draft 2020-12</a>
+    and use structured cross-schema references in the form
+    <code>{"group": "...", "kind": "...", "version": "v1alpha1"}</code>.
+  </p>
+  <div class="note">
+    This is a publication artifact, not an implementation artifact.
+    Import individual schemas or the full index to validate instances,
+    generate clients, or declare compatibility.
+  </div>
+
+  <h2 id="import">How to Import</h2>
+
+  <h3>Reference a single schema in another JSON Schema</h3>
+  <div class="code-block"><span class="c">// Use the $id URI directly in any $ref field</span>
+{
+  <span class="k">"$schema"</span>: <span class="s">"https://json-schema.org/draft/2020-12/schema"</span>,
+  <span class="k">"properties"</span>: {
+    <span class="k">"domainIdentityRef"</span>: {
+      <span class="k">"$ref"</span>: <span class="s">"https://schema.ontai.dev/v1alpha1/domain-core/DomainIdentity.json"</span>
+    }
+  }
+}</div>
+
+  <h3>Fetch the full schema index</h3>
+  <div class="code-block">GET https://schema.ontai.dev/v1alpha1/index.json
+
+<span class="c">// Response shape</span>
+{
+  <span class="k">"version"</span>: <span class="s">"v1alpha1"</span>,
+  <span class="k">"publishedAt"</span>: <span class="s">"2026-04-18"</span>,
+  <span class="k">"stability"</span>: <span class="s">"alpha"</span>,
+  <span class="k">"layers"</span>: {
+    <span class="k">"shared"</span>: [ { <span class="k">"kind"</span>: <span class="s">"..."</span>, <span class="k">"file"</span>: <span class="s">"..."</span>, ... } ],
+    <span class="k">"domain-core"</span>: [ ... ],
+    <span class="k">"seam-core"</span>: [ ... ],
+    <span class="k">"app-core"</span>: [ ... ]
+  }
+}</div>
+
+  <h3>Layer dependency order</h3>
+  <div class="code-block">app-core  -->  domain-core  -->  shared
+seam-core -->  domain-core  -->  shared</div>
+
+  <h2 id="shared">Layer: shared</h2>
+  <p>Reusable embedded types. No API group. No controllers.</p>
+
+  <div class="schema-list">
+    <div class="schema-item">
+      <span class="kind">KubernetesMetadata</span>
+      <span class="desc">Standard Kubernetes ObjectMeta used as a <code>$ref</code> target by all CRD schemas.</span>
+      <a href="v1alpha1/shared/KubernetesMetadata.json">JSON</a>
+    </div>
+    <div class="schema-item">
+      <span class="kind">SealedCausalChain</span>
+      <span class="desc">Immutable causal chain record linking a derived object to its root declaration. All fields required and immutable after creation.</span>
+      <a href="v1alpha1/shared/SealedCausalChain.json">JSON</a>
+    </div>
+    <div class="schema-item">
+      <span class="kind">BindingStability</span>
+      <span class="desc">Binding stability descriptor for cross-operator relationship wiring with SnapshotBinding and ContinuousBinding types.</span>
+      <a href="v1alpha1/shared/BindingStability.json">JSON</a>
+    </div>
+    <div class="schema-item">
+      <span class="kind">PhaseModel</span>
+      <span class="desc">Eight-phase lifecycle model (ScopeEstablishment through ProfileCompletion) used by AppProfile.</span>
+      <a href="v1alpha1/shared/PhaseModel.json">JSON</a>
+    </div>
+    <div class="schema-item">
+      <span class="kind">RationaleField</span>
+      <span class="desc">Structured rationale type for governance events. Not a CRD spec field.</span>
+      <a href="v1alpha1/shared/RationaleField.json">JSON</a>
+    </div>
+    <div class="schema-item">
+      <span class="kind">GovernanceEvent</span>
+      <span class="desc">Layer One and Layer Two change event record with actor, changeType, and rationale.</span>
+      <a href="v1alpha1/shared/GovernanceEvent.json">JSON</a>
+    </div>
+  </div>
+
+  <h2 id="domain-core">Layer: domain-core</h2>
+  <p>Layer 0 abstract domain primitives. API group: <code>core.ontai.dev/v1alpha1</code>. No controllers at this layer.</p>
+
+  <div class="schema-list">
+    <div class="schema-item">
+      <span class="kind">DomainIdentity</span>
+      <span class="desc">Named principal with SPIFFE trust domain and ONT web subject. Root anchor for all derivation trees.</span>
+      <a href="v1alpha1/domain-core/DomainIdentity.json">JSON</a>
+    </div>
+    <div class="schema-item">
+      <span class="kind">DomainBoundary</span>
+      <span class="desc">Organizational scope and cluster placement authority for a domain identity.</span>
+      <a href="v1alpha1/domain-core/DomainBoundary.json">JSON</a>
+    </div>
+    <div class="schema-item">
+      <span class="kind">DomainPolicy</span>
+      <span class="desc">Ceilings for retry, circuit breaker, rate limit, and cardinality. Guardian validates AppPolicy against these.</span>
+      <a href="v1alpha1/domain-core/DomainPolicy.json">JSON</a>
+    </div>
+    <div class="schema-item">
+      <span class="kind">DomainRelationship</span>
+      <span class="desc">Typed directional association using controlled vocabulary: signs, provisions, delegates, governs, observes, depends-on, extends.</span>
+      <a href="v1alpha1/domain-core/DomainRelationship.json">JSON</a>
+    </div>
+    <div class="schema-item">
+      <span class="kind">DomainEvent</span>
+      <span class="desc">Event type contract with producer authority, schema version, and retention policy.</span>
+      <a href="v1alpha1/domain-core/DomainEvent.json">JSON</a>
+    </div>
+    <div class="schema-item">
+      <span class="kind">DomainWorkflow</span>
+      <span class="desc">Lifecycle phase sequence with entry conditions, terminal states, and transition authority.</span>
+      <a href="v1alpha1/domain-core/DomainWorkflow.json">JSON</a>
+    </div>
+    <div class="schema-item">
+      <span class="kind">DomainResource</span>
+      <span class="desc">Compute and storage ceilings with Kueue resource flavor constraints.</span>
+      <a href="v1alpha1/domain-core/DomainResource.json">JSON</a>
+    </div>
+    <div class="schema-item">
+      <span class="kind">DomainAudit</span>
+      <span class="desc">Minimum granularity floor, retention requirement, and mandatory event types for audit compliance.</span>
+      <a href="v1alpha1/domain-core/DomainAudit.json">JSON</a>
+    </div>
+    <div class="schema-item">
+      <span class="kind">DomainSemanticNameService</span>
+      <span class="desc">DSNS zone declaration with record types and resolution tier registry.</span>
+      <a href="v1alpha1/domain-core/DomainSemanticNameService.json">JSON</a>
+    </div>
+  </div>
+
+  <h2 id="seam-core">Layer: seam-core</h2>
+  <p>Seam infrastructure domain CRDs. API group: <code>infrastructure.ontai.dev/v1alpha1</code>.</p>
+
+  <div class="schema-list">
+    <div class="schema-item">
+      <span class="kind">InfrastructureLineageIndex</span>
+      <span class="desc">Sealed causal chain index; one instance per root declaration, controller-authored exclusively.</span>
+      <a href="v1alpha1/seam-core/InfrastructureLineageIndex.json">JSON</a>
+    </div>
+    <div class="schema-item">
+      <span class="kind">SeamMembership</span>
+      <span class="desc">Formal operator join declaration with tier (infrastructure, application) and 7-step validation loop.</span>
+      <a href="v1alpha1/seam-core/SeamMembership.json">JSON</a>
+    </div>
+    <div class="schema-item">
+      <span class="kind">DSNSZone</span>
+      <span class="desc">DNS zone with controller-authored A, TXT, SOA, NS records linked to owning resources.</span>
+      <a href="v1alpha1/seam-core/DSNSZone.json">JSON</a>
+    </div>
+  </div>
+
+  <h2 id="app-core">Layer: app-core</h2>
+  <p>Application layer CRDs for community operators. API group: <code>app.ontai.dev/v1alpha1</code>.</p>
+
+  <div class="schema-list">
+    <div class="schema-item">
+      <span class="kind">AppBoundary</span>
+      <span class="desc">Namespace and cluster scope gate; must be Ready before AppIdentity creation is permitted.</span>
+      <a href="v1alpha1/app-core/AppBoundary.json">JSON</a>
+    </div>
+    <div class="schema-item">
+      <span class="kind">AppIdentity</span>
+      <span class="desc">Root anchor for all sibling app-core CRDs; issues a SPIFFE ID on admission.</span>
+      <a href="v1alpha1/app-core/AppIdentity.json">JSON</a>
+    </div>
+    <div class="schema-item">
+      <span class="kind">AppPolicy</span>
+      <span class="desc">Application policy bounded by DomainPolicy ceilings; Guardian enforces compliance at admission.</span>
+      <a href="v1alpha1/app-core/AppPolicy.json">JSON</a>
+    </div>
+    <div class="schema-item">
+      <span class="kind">AppTopology</span>
+      <span class="desc">Application wirings, each required to trace back to a DomainRelationship.</span>
+      <a href="v1alpha1/app-core/AppTopology.json">JSON</a>
+    </div>
+    <div class="schema-item">
+      <span class="kind">AppEventSchema</span>
+      <span class="desc">Producer/consumer registration for a DomainEvent type with schema version compatibility check.</span>
+      <a href="v1alpha1/app-core/AppEventSchema.json">JSON</a>
+    </div>
+    <div class="schema-item">
+      <span class="kind">AppWorkflow</span>
+      <span class="desc">Kueue Job bindings per workflow phase with temporal relationship declarations.</span>
+      <a href="v1alpha1/app-core/AppWorkflow.json">JSON</a>
+    </div>
+    <div class="schema-item">
+      <span class="kind">AppResourceProfile</span>
+      <span class="desc">Compute and storage claims bounded by DomainResource ceilings; immutable after Running state.</span>
+      <a href="v1alpha1/app-core/AppResourceProfile.json">JSON</a>
+    </div>
+    <div class="schema-item">
+      <span class="kind">AppAuditPolicy</span>
+      <span class="desc">Emitted event types and granularity; floor enforced by Guardian against DomainAudit minimum.</span>
+      <a href="v1alpha1/app-core/AppAuditPolicy.json">JSON</a>
+    </div>
+    <div class="schema-item">
+      <span class="kind">AppProfile</span>
+      <span class="desc">Aggregate root composing all app-core CRDs; Ready only after all eight phase gates complete.</span>
+      <a href="v1alpha1/app-core/AppProfile.json">JSON</a>
+    </div>
+  </div>
+
+  <h2 id="stability">Stability Policy</h2>
+  <table>
+    <tr>
+      <th>Value</th>
+      <th>Meaning</th>
+    </tr>
+    <tr>
+      <td><code>alpha</code></td>
+      <td>Under active development. Breaking changes may occur between releases.</td>
+    </tr>
+    <tr>
+      <td><code>beta</code></td>
+      <td>Feature-complete. Breaking changes require a deprecation notice one release prior.</td>
+    </tr>
+    <tr>
+      <td><code>stable</code></td>
+      <td>Production-ready. No breaking changes without a new version directory.</td>
+    </tr>
+    <tr>
+      <td><code>deprecated</code></td>
+      <td>Superseded. Consumers must migrate before the next major release.</td>
+    </tr>
+  </table>
+  <p>All schemas in <strong>v1alpha1</strong> carry <code>x-ont-stability: "alpha"</code>.</p>
+  <p style="margin-top:0.5rem">
+    Pin to a specific git commit for stability during alpha.
+    See <a href="README.md">README</a> for the full contribution and versioning policy.
+  </p>
+
+</div>
+
+<footer>
+  <p>
+    <a href="https://ontai.dev">ontai.dev</a> &nbsp;&#x2022;&nbsp;
+    <a href="https://github.com/ontai-dev/ontai-schema">GitHub</a> &nbsp;&#x2022;&nbsp;
+    Apache 2.0 License &nbsp;&#x2022;&nbsp;
+    v1alpha1 (alpha)
+  </p>
+</footer>
+
+</body>
+</html>

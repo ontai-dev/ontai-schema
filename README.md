@@ -1,4 +1,4 @@
-# ONT OpenAPI JSON Schema — v1alpha1
+# ONT OpenAPI JSON Schema: v1alpha1
 
 The versioned, importable community standard for the ONT platform API surface.
 Published at `ontai.dev/schema/v1alpha1`.
@@ -12,14 +12,14 @@ versioned definition of every CRD and reusable type in the ONT platform stack.
 
 The schema covers four layers:
 
-- **shared** — Reusable types embedded in CRD specs (SealedCausalChain, BindingStability,
+- **shared**: Reusable types embedded in CRD specs (SealedCausalChain, BindingStability,
   PhaseModel, RationaleField, GovernanceEvent, KubernetesMetadata).
-- **domain-core** — Layer 0 abstract domain primitives under `core.ontai.dev`
+- **domain-core**: Layer 0 abstract domain primitives under `core.ontai.dev`
   (DomainIdentity, DomainBoundary, DomainPolicy, DomainRelationship, DomainEvent,
   DomainWorkflow, DomainResource, DomainAudit, DomainSemanticNameService).
-- **seam-core** — Infrastructure domain CRDs under `infrastructure.ontai.dev`
+- **seam-core**: Infrastructure domain CRDs under `infrastructure.ontai.dev`
   (InfrastructureLineageIndex, SeamMembership, DSNSZone).
-- **app-core** — Application layer CRDs under `app.ontai.dev`
+- **app-core**: Application layer CRDs under `app.ontai.dev`
   (AppBoundary, AppIdentity, AppPolicy, AppTopology, AppEventSchema, AppWorkflow,
   AppResourceProfile, AppAuditPolicy, AppProfile).
 
@@ -143,3 +143,48 @@ enumeration and updated in sync.
 - Within a version, new optional fields may be added without a version bump.
 - Any field removal, type change, or required field addition requires a new version.
 - The `index.json` at each version root is the stable entry point for that version.
+
+## License
+
+Apache License 2.0. See [LICENSE](./LICENSE) for the full text.
+
+You may use, modify, and distribute these schemas for any purpose
+including commercial use. You must include the original copyright
+notice and state any changes you make. You may not use the ONT
+project name or contributors names to endorse derived products.
+
+## Versioning Policy
+
+Schemas marked x-ont-stability: "alpha" may change without notice
+between patch releases. Pin to a specific git commit if you need
+stability.
+
+When a schema advances to "beta", changes require a deprecation
+notice in CHANGELOG.md at least one release before removal.
+
+When a schema advances to "stable", changes require a new version
+directory (v1beta1, v1) and the previous version is maintained
+for at least six months.
+
+## Community
+
+ONT is open source under the Apache 2.0 license. To contribute
+a schema for a new domain CRD:
+
+1. Fork this repository
+2. Add your schema file under v1alpha1/{your-layer}/
+3. Follow the four-part schema structure defined in this README
+4. Reference only existing shared/ and domain-core/ schemas
+5. Add your schema to v1alpha1/index.json
+6. Include a senior engineer sign-off in the pull request description
+   confirming the schema correctly represents the domain knowledge
+7. Submit a pull request
+
+Community schemas that represent real production domains are
+the highest-value contributions. See the ONT Operator Validation
+Framework at ontai.dev for the sign-off process.
+
+## Schema Browser
+
+Visit https://schema.ontai.dev to browse the schema index
+in a human-readable format.
