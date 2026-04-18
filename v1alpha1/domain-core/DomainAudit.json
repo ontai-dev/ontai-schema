@@ -1,0 +1,99 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schema.ontai.dev/v1alpha1/domain-core/DomainAudit.json",
+  "title": "DomainAudit",
+  "description": "Audit requirements declaration for a domain identity. Establishes the minimum event granularity floor, retention requirement, transport path, and mandatory event types that all downstream AppAuditPolicy instances must satisfy. Guardian enforces the floor declared here against all AppAuditPolicy instances. No controller runs at Layer 0.",
+  "x-ont-layer": "domain-core",
+  "x-ont-stability": "alpha",
+  "x-ont-depends-on": [
+    {"group": "core.ontai.dev", "kind": "DomainIdentity", "version": "v1alpha1"}
+  ],
+  "type": "object",
+  "required": ["apiVersion", "kind", "metadata", "spec"],
+  "properties": {
+    "apiVersion": {
+      "type": "string",
+      "const": "core.ontai.dev/v1alpha1",
+      "description": "API version for this resource."
+    },
+    "kind": {
+      "type": "string",
+      "const": "DomainAudit",
+      "description": "Resource kind."
+    },
+    "metadata": {
+      "$ref": "https://schema.ontai.dev/v1alpha1/shared/KubernetesMetadata.json",
+      "description": "Standard Kubernetes object metadata."
+    },
+    "spec": {
+      "type": "object",
+      "description": "Desired state of the DomainAudit declaration.",
+      "required": ["domainIdentityRef", "minimumEventGranularity", "retentionRequirementDays"],
+      "properties": {
+        "domainIdentityRef": {
+          "type": "object",
+          "description": "Structured reference to the DomainIdentity that this audit declaration governs.",
+          "required": ["group", "kind", "version", "name"],
+          "properties": {
+            "group": { "type": "string", "const": "core.ontai.dev" },
+            "kind": { "type": "string", "const": "DomainIdentity" },
+            "version": { "type": "string", "const": "v1alpha1" },
+            "name": { "type": "string", "description": "Name of the DomainIdentity resource." }
+          },
+          "additionalProperties": false
+        },
+        "minimumEventGranularity": {
+          "type": "string",
+          "description": "Minimum event granularity floor for all AppAuditPolicy instances within this domain. AppAuditPolicy may not declare granularity below this floor. Guardian enforces this constraint.",
+          "enum": ["high", "medium", "low"]
+        },
+        "retentionRequirementDays": {
+          "type": "integer",
+          "description": "Minimum number of days that audit event records must be retained. AppAuditPolicy instances must meet or exceed this requirement.",
+          "minimum": 1
+        },
+        "transportPath": {
+          "type": "string",
+          "description": "Required audit event transport path for this domain.",
+          "enum": ["conductor-federation", "direct", "none"]
+        },
+        "mandatoryEventTypes": {
+          "type": "array",
+          "description": "List of event type names that every AppAuditPolicy within this domain must emit. Guardian validates that AppAuditPolicy.emittedEventTypes covers all entries.",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "status": {
+      "type": "object",
+      "description": "Observed state of the DomainAudit.",
+      "properties": {
+        "conditions": {
+          "type": "array",
+          "description": "Standard Kubernetes condition array for this resource.",
+          "items": { "$ref": "#/$defs/Condition" }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "Condition": {
+      "type": "object",
+      "required": ["type", "status", "lastTransitionTime", "reason", "message"],
+      "properties": {
+        "type": { "type": "string" },
+        "status": { "type": "string", "enum": ["True", "False", "Unknown"] },
+        "lastTransitionTime": { "type": "string", "format": "date-time" },
+        "reason": { "type": "string" },
+        "message": { "type": "string" },
+        "observedGeneration": { "type": "integer" }
+      },
+      "additionalProperties": false
+    }
+  }
+}

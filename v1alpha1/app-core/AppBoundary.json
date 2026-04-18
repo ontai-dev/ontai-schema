@@ -1,0 +1,94 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schema.ontai.dev/v1alpha1/app-core/AppBoundary.json",
+  "title": "AppBoundary",
+  "description": "Declares the namespace, cluster, and environment scope within which an application operates. AppBoundary must reach Ready=true before AppIdentity may be created. This ordering is enforced by the app-core admission webhook: AppIdentity creation is rejected if the referenced AppBoundary does not carry Ready=true in its status.",
+  "x-ont-layer": "app-core",
+  "x-ont-stability": "alpha",
+  "x-ont-depends-on": [
+    {"group": "core.ontai.dev", "kind": "DomainBoundary", "version": "v1alpha1"}
+  ],
+  "type": "object",
+  "required": ["apiVersion", "kind", "metadata", "spec"],
+  "properties": {
+    "apiVersion": {
+      "type": "string",
+      "const": "app.ontai.dev/v1alpha1",
+      "description": "API version for this resource."
+    },
+    "kind": {
+      "type": "string",
+      "const": "AppBoundary",
+      "description": "Resource kind."
+    },
+    "metadata": {
+      "$ref": "https://schema.ontai.dev/v1alpha1/shared/KubernetesMetadata.json",
+      "description": "Standard Kubernetes object metadata."
+    },
+    "spec": {
+      "type": "object",
+      "description": "Desired state of the AppBoundary.",
+      "required": ["domainBoundaryRef"],
+      "properties": {
+        "domainBoundaryRef": {
+          "type": "object",
+          "description": "Structured reference to the DomainBoundary that declares the organizational scope for this application boundary.",
+          "required": ["group", "kind", "version", "name"],
+          "properties": {
+            "group": { "type": "string", "const": "core.ontai.dev" },
+            "kind": { "type": "string", "const": "DomainBoundary" },
+            "version": { "type": "string", "const": "v1alpha1" },
+            "name": { "type": "string", "description": "Name of the DomainBoundary resource." }
+          },
+          "additionalProperties": false
+        },
+        "namespace": {
+          "type": "string",
+          "description": "Kubernetes namespace in which this application boundary operates."
+        },
+        "clusterAssignment": {
+          "type": "string",
+          "description": "Name of the target cluster to which this application boundary is assigned. Resolves to a TalosCluster resource on the management cluster."
+        },
+        "environmentTier": {
+          "type": "string",
+          "description": "Environment classification for this application boundary.",
+          "enum": ["production", "staging", "development"]
+        }
+      },
+      "additionalProperties": false
+    },
+    "status": {
+      "type": "object",
+      "description": "Observed state of the AppBoundary.",
+      "properties": {
+        "ready": {
+          "type": "boolean",
+          "description": "True when the AppBoundary has been validated and is ready for AppIdentity creation."
+        },
+        "conditions": {
+          "type": "array",
+          "description": "Standard Kubernetes condition array for this resource.",
+          "items": { "$ref": "#/$defs/Condition" }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "Condition": {
+      "type": "object",
+      "required": ["type", "status", "lastTransitionTime", "reason", "message"],
+      "properties": {
+        "type": { "type": "string" },
+        "status": { "type": "string", "enum": ["True", "False", "Unknown"] },
+        "lastTransitionTime": { "type": "string", "format": "date-time" },
+        "reason": { "type": "string" },
+        "message": { "type": "string" },
+        "observedGeneration": { "type": "integer" }
+      },
+      "additionalProperties": false
+    }
+  }
+}

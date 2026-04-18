@@ -1,0 +1,121 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schema.ontai.dev/v1alpha1/domain-core/DomainResource.json",
+  "title": "DomainResource",
+  "description": "Governed infrastructure artifact or workload object within a domain. Declares resource ceilings (compute, storage, cardinality) that downstream AppResourceProfile instances must not exceed. No controller runs at Layer 0.",
+  "x-ont-layer": "domain-core",
+  "x-ont-stability": "alpha",
+  "x-ont-depends-on": [
+    {"group": "core.ontai.dev", "kind": "DomainIdentity", "version": "v1alpha1"}
+  ],
+  "type": "object",
+  "required": ["apiVersion", "kind", "metadata", "spec"],
+  "properties": {
+    "apiVersion": {
+      "type": "string",
+      "const": "core.ontai.dev/v1alpha1",
+      "description": "API version for this resource."
+    },
+    "kind": {
+      "type": "string",
+      "const": "DomainResource",
+      "description": "Resource kind."
+    },
+    "metadata": {
+      "$ref": "https://schema.ontai.dev/v1alpha1/shared/KubernetesMetadata.json",
+      "description": "Standard Kubernetes object metadata."
+    },
+    "spec": {
+      "type": "object",
+      "description": "Desired state of the DomainResource.",
+      "required": ["domainIdentityRef"],
+      "properties": {
+        "domainIdentityRef": {
+          "type": "object",
+          "description": "Structured reference to the DomainIdentity that owns this resource declaration.",
+          "required": ["group", "kind", "version", "name"],
+          "properties": {
+            "group": { "type": "string", "const": "core.ontai.dev" },
+            "kind": { "type": "string", "const": "DomainIdentity" },
+            "version": { "type": "string", "const": "v1alpha1" },
+            "name": { "type": "string", "description": "Name of the DomainIdentity resource." }
+          },
+          "additionalProperties": false
+        },
+        "computeCeiling": {
+          "type": "object",
+          "description": "Maximum compute resources permitted for any AppResourceProfile instance within this domain.",
+          "required": ["cpu", "memory"],
+          "properties": {
+            "cpu": {
+              "type": "string",
+              "description": "Maximum CPU ceiling in Kubernetes resource quantity format (e.g., 4, 2000m)."
+            },
+            "memory": {
+              "type": "string",
+              "description": "Maximum memory ceiling in Kubernetes resource quantity format (e.g., 8Gi, 4096Mi)."
+            }
+          },
+          "additionalProperties": false
+        },
+        "storageCeiling": {
+          "type": "object",
+          "description": "Maximum storage resources permitted for any AppResourceProfile instance within this domain.",
+          "required": ["capacity", "storageClass"],
+          "properties": {
+            "capacity": {
+              "type": "string",
+              "description": "Maximum storage capacity ceiling in Kubernetes resource quantity format (e.g., 100Gi)."
+            },
+            "storageClass": {
+              "type": "string",
+              "description": "Name of the permitted StorageClass for storage claims within this domain."
+            }
+          },
+          "additionalProperties": false
+        },
+        "kueueResourceFlavors": {
+          "type": "array",
+          "description": "List of Kueue ResourceFlavor names that are permitted for Kueue Job submissions within this domain.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "cardinalityCeiling": {
+          "type": "integer",
+          "description": "Maximum number of concurrent resource instances (Pods, Jobs) permitted in this domain.",
+          "minimum": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "status": {
+      "type": "object",
+      "description": "Observed state of the DomainResource.",
+      "properties": {
+        "conditions": {
+          "type": "array",
+          "description": "Standard Kubernetes condition array for this resource.",
+          "items": { "$ref": "#/$defs/Condition" }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "Condition": {
+      "type": "object",
+      "required": ["type", "status", "lastTransitionTime", "reason", "message"],
+      "properties": {
+        "type": { "type": "string" },
+        "status": { "type": "string", "enum": ["True", "False", "Unknown"] },
+        "lastTransitionTime": { "type": "string", "format": "date-time" },
+        "reason": { "type": "string" },
+        "message": { "type": "string" },
+        "observedGeneration": { "type": "integer" }
+      },
+      "additionalProperties": false
+    }
+  }
+}

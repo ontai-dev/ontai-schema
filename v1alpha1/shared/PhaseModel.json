@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schema.ontai.dev/v1alpha1/shared/PhaseModel.json",
+  "title": "PhaseModel",
+  "description": "Reusable lifecycle phase model for AppProfile. Declares the ordered sequence of phases an application profile traverses from declaration to operational readiness. Eight canonical phases are defined: ScopeEstablishment, IdentityRegistration, AuthorityResolution, StructuralWiring, EventContractRegistration, WorkflowBootstrap, BehavioralConfiguration, ProfileCompletion.",
+  "x-ont-layer": "shared",
+  "x-ont-stability": "alpha",
+  "x-ont-depends-on": [],
+  "type": "object",
+  "required": ["phases"],
+  "properties": {
+    "phases": {
+      "type": "array",
+      "description": "Ordered list of PhaseDefinition objects that form the lifecycle model.",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/PhaseDefinition"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "PhaseDefinition": {
+      "type": "object",
+      "required": ["name", "order"],
+      "description": "Defines a single lifecycle phase within a PhaseModel.",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Phase name. For AppProfile, must be one of the eight canonical phase names: ScopeEstablishment, IdentityRegistration, AuthorityResolution, StructuralWiring, EventContractRegistration, WorkflowBootstrap, BehavioralConfiguration, ProfileCompletion.",
+          "enum": [
+            "ScopeEstablishment",
+            "IdentityRegistration",
+            "AuthorityResolution",
+            "StructuralWiring",
+            "EventContractRegistration",
+            "WorkflowBootstrap",
+            "BehavioralConfiguration",
+            "ProfileCompletion"
+          ]
+        },
+        "order": {
+          "type": "integer",
+          "description": "Numeric ordering of this phase within the model. Lower values execute first. Must be unique within a PhaseModel.",
+          "minimum": 1
+        },
+        "parallel": {
+          "type": "boolean",
+          "description": "When true, this phase may execute concurrently with other phases that share the same order value.",
+          "default": false
+        },
+        "entryConditions": {
+          "type": "array",
+          "description": "Conditions that must be satisfied before this phase may begin. Each entry is a condition type string evaluated against the AppProfile status conditions.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "exitConditions": {
+          "type": "array",
+          "description": "Conditions that must be satisfied for this phase to be considered complete. Each entry is a condition type string.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "dependsOn": {
+          "type": "array",
+          "description": "Names of other phases that must reach terminal state before this phase may begin.",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

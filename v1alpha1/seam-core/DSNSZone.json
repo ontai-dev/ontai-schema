@@ -1,0 +1,120 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schema.ontai.dev/v1alpha1/seam-core/DSNSZone.json",
+  "title": "DSNSZone",
+  "description": "Domain Semantic Name Service zone declaration. Owns a DNS zone and its records within the Seam infrastructure domain. Records are authored by controllers that own the named resources; humans do not write DSNS records directly.",
+  "x-ont-layer": "seam-core",
+  "x-ont-stability": "alpha",
+  "x-ont-depends-on": [
+    {"group": "core.ontai.dev", "kind": "DomainSemanticNameService", "version": "v1alpha1"}
+  ],
+  "type": "object",
+  "required": ["apiVersion", "kind", "metadata", "spec"],
+  "properties": {
+    "apiVersion": {
+      "type": "string",
+      "const": "infrastructure.ontai.dev/v1alpha1",
+      "description": "API version for this resource."
+    },
+    "kind": {
+      "type": "string",
+      "const": "DSNSZone",
+      "description": "Resource kind."
+    },
+    "metadata": {
+      "$ref": "https://schema.ontai.dev/v1alpha1/shared/KubernetesMetadata.json",
+      "description": "Standard Kubernetes object metadata."
+    },
+    "spec": {
+      "type": "object",
+      "description": "Desired state of the DSNSZone.",
+      "required": ["origin"],
+      "properties": {
+        "origin": {
+          "type": "string",
+          "description": "DNS zone apex (origin) for this DSNS zone (e.g., guardian.seam.ontai.dev). Must be a fully-qualified domain name."
+        },
+        "ttl": {
+          "type": "integer",
+          "description": "Default TTL in seconds for records in this zone.",
+          "default": 300,
+          "minimum": 1
+        },
+        "records": {
+          "type": "array",
+          "description": "List of DNS records within this zone. Authored by the controllers that own the referenced resources.",
+          "items": {
+            "$ref": "#/$defs/DSNSRecord"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "status": {
+      "type": "object",
+      "description": "Observed state of the DSNSZone.",
+      "properties": {
+        "conditions": {
+          "type": "array",
+          "description": "Standard Kubernetes condition array for this resource.",
+          "items": { "$ref": "#/$defs/Condition" }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "DSNSRecord": {
+      "type": "object",
+      "required": ["name", "type", "value"],
+      "description": "A single DNS record within a DSNSZone.",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Record name relative to the zone origin (e.g., guardian, _spiffe.guardian)."
+        },
+        "type": {
+          "type": "string",
+          "description": "DNS record type.",
+          "enum": ["A", "TXT", "SOA", "NS"]
+        },
+        "value": {
+          "type": "string",
+          "description": "Record value. Format depends on record type: A records use IPv4 addresses, TXT records use quoted strings, NS records use nameserver FQDNs."
+        },
+        "ttl": {
+          "type": "integer",
+          "description": "TTL in seconds for this record. Overrides the zone default when set.",
+          "minimum": 1
+        },
+        "ownerKind": {
+          "type": "string",
+          "description": "Kind of the Kubernetes resource that owns this record (e.g., SeamMembership, RBACProfile)."
+        },
+        "ownerName": {
+          "type": "string",
+          "description": "Name of the Kubernetes resource that owns this record."
+        },
+        "ownerNamespace": {
+          "type": "string",
+          "description": "Namespace of the Kubernetes resource that owns this record."
+        }
+      },
+      "additionalProperties": false
+    },
+    "Condition": {
+      "type": "object",
+      "required": ["type", "status", "lastTransitionTime", "reason", "message"],
+      "properties": {
+        "type": { "type": "string" },
+        "status": { "type": "string", "enum": ["True", "False", "Unknown"] },
+        "lastTransitionTime": { "type": "string", "format": "date-time" },
+        "reason": { "type": "string" },
+        "message": { "type": "string" },
+        "observedGeneration": { "type": "integer" }
+      },
+      "additionalProperties": false
+    }
+  }
+}

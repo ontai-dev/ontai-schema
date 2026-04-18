@@ -1,0 +1,94 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schema.ontai.dev/v1alpha1/domain-core/DomainBoundary.json",
+  "title": "DomainBoundary",
+  "description": "Declares the organizational and infrastructure boundary within which a domain identity operates. DomainBoundary is a prerequisite for AppBoundary creation at the app-core layer. No controller runs at Layer 0.",
+  "x-ont-layer": "domain-core",
+  "x-ont-stability": "alpha",
+  "x-ont-depends-on": [
+    {"group": "core.ontai.dev", "kind": "DomainIdentity", "version": "v1alpha1"}
+  ],
+  "type": "object",
+  "required": ["apiVersion", "kind", "metadata", "spec"],
+  "properties": {
+    "apiVersion": {
+      "type": "string",
+      "const": "core.ontai.dev/v1alpha1",
+      "description": "API version for this resource."
+    },
+    "kind": {
+      "type": "string",
+      "const": "DomainBoundary",
+      "description": "Resource kind."
+    },
+    "metadata": {
+      "$ref": "https://schema.ontai.dev/v1alpha1/shared/KubernetesMetadata.json",
+      "description": "Standard Kubernetes object metadata."
+    },
+    "spec": {
+      "type": "object",
+      "description": "Desired state of the DomainBoundary.",
+      "required": ["domainIdentityRef"],
+      "properties": {
+        "domainIdentityRef": {
+          "type": "object",
+          "description": "Structured reference to the DomainIdentity that this boundary is associated with.",
+          "required": ["group", "kind", "version", "name"],
+          "properties": {
+            "group": { "type": "string", "const": "core.ontai.dev" },
+            "kind": { "type": "string", "const": "DomainIdentity" },
+            "version": { "type": "string", "const": "v1alpha1" },
+            "name": { "type": "string", "description": "Name of the DomainIdentity resource." }
+          },
+          "additionalProperties": false
+        },
+        "organizationalScope": {
+          "type": "string",
+          "description": "Human-readable description of the organizational unit or team boundary that owns this domain (e.g., platform-engineering, security-team)."
+        },
+        "tenantAssignment": {
+          "type": "string",
+          "description": "Name of the tenant or cluster to which this domain boundary is assigned. Resolves to a tenant namespace on the management cluster."
+        },
+        "clusterPlacementAuthority": {
+          "type": "string",
+          "description": "Name of the Seam operator or component that holds placement authority for this boundary. Typically platform for infrastructure-tier boundaries."
+        },
+        "environmentTier": {
+          "type": "string",
+          "description": "Environment classification for this boundary.",
+          "enum": ["production", "staging", "development"]
+        }
+      },
+      "additionalProperties": false
+    },
+    "status": {
+      "type": "object",
+      "description": "Observed state of the DomainBoundary.",
+      "properties": {
+        "conditions": {
+          "type": "array",
+          "description": "Standard Kubernetes condition array for this resource.",
+          "items": { "$ref": "#/$defs/Condition" }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "Condition": {
+      "type": "object",
+      "required": ["type", "status", "lastTransitionTime", "reason", "message"],
+      "properties": {
+        "type": { "type": "string" },
+        "status": { "type": "string", "enum": ["True", "False", "Unknown"] },
+        "lastTransitionTime": { "type": "string", "format": "date-time" },
+        "reason": { "type": "string" },
+        "message": { "type": "string" },
+        "observedGeneration": { "type": "integer" }
+      },
+      "additionalProperties": false
+    }
+  }
+}

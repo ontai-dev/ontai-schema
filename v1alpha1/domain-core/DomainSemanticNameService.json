@@ -1,0 +1,101 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schema.ontai.dev/v1alpha1/domain-core/DomainSemanticNameService.json",
+  "title": "DomainSemanticNameService",
+  "description": "Semantic name service declaration for a domain identity. Declares the DNS zone, supported record types, and resolution tiers for the Domain Semantic Name Service (DSNS). Establishes the name resolution contract that DSNS zones must implement. No controller runs at Layer 0.",
+  "x-ont-layer": "domain-core",
+  "x-ont-stability": "alpha",
+  "x-ont-depends-on": [
+    {"group": "core.ontai.dev", "kind": "DomainIdentity", "version": "v1alpha1"}
+  ],
+  "type": "object",
+  "required": ["apiVersion", "kind", "metadata", "spec"],
+  "properties": {
+    "apiVersion": {
+      "type": "string",
+      "const": "core.ontai.dev/v1alpha1",
+      "description": "API version for this resource."
+    },
+    "kind": {
+      "type": "string",
+      "const": "DomainSemanticNameService",
+      "description": "Resource kind."
+    },
+    "metadata": {
+      "$ref": "https://schema.ontai.dev/v1alpha1/shared/KubernetesMetadata.json",
+      "description": "Standard Kubernetes object metadata."
+    },
+    "spec": {
+      "type": "object",
+      "description": "Desired state of the DomainSemanticNameService declaration.",
+      "required": ["domainIdentityRef", "zone"],
+      "properties": {
+        "domainIdentityRef": {
+          "type": "object",
+          "description": "Structured reference to the DomainIdentity that owns this name service declaration.",
+          "required": ["group", "kind", "version", "name"],
+          "properties": {
+            "group": { "type": "string", "const": "core.ontai.dev" },
+            "kind": { "type": "string", "const": "DomainIdentity" },
+            "version": { "type": "string", "const": "v1alpha1" },
+            "name": { "type": "string", "description": "Name of the DomainIdentity resource." }
+          },
+          "additionalProperties": false
+        },
+        "zone": {
+          "type": "string",
+          "description": "DNS zone apex for this domain's semantic name service (e.g., guardian.seam.ontai.dev)."
+        },
+        "recordTypes": {
+          "type": "array",
+          "description": "List of DNS record types supported in this DSNS zone.",
+          "items": {
+            "type": "string",
+            "enum": ["A", "TXT", "SOA", "NS", "CNAME"]
+          }
+        },
+        "resolutionTiers": {
+          "type": "array",
+          "description": "Ordered list of resolution tiers that this DSNS implementation supports. Each tier represents a semantic resolution context.",
+          "items": {
+            "type": "string",
+            "enum": ["identity", "boundary", "relationship", "semantic-role"]
+          }
+        },
+        "nsGlueRecord": {
+          "type": "string",
+          "description": "Optional glue record pointing to the authoritative nameserver for this zone. Used for delegation from the parent zone."
+        }
+      },
+      "additionalProperties": false
+    },
+    "status": {
+      "type": "object",
+      "description": "Observed state of the DomainSemanticNameService.",
+      "properties": {
+        "conditions": {
+          "type": "array",
+          "description": "Standard Kubernetes condition array for this resource.",
+          "items": { "$ref": "#/$defs/Condition" }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "Condition": {
+      "type": "object",
+      "required": ["type", "status", "lastTransitionTime", "reason", "message"],
+      "properties": {
+        "type": { "type": "string" },
+        "status": { "type": "string", "enum": ["True", "False", "Unknown"] },
+        "lastTransitionTime": { "type": "string", "format": "date-time" },
+        "reason": { "type": "string" },
+        "message": { "type": "string" },
+        "observedGeneration": { "type": "integer" }
+      },
+      "additionalProperties": false
+    }
+  }
+}

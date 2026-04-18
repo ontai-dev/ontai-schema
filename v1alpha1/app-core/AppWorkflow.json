@@ -1,0 +1,150 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schema.ontai.dev/v1alpha1/app-core/AppWorkflow.json",
+  "title": "AppWorkflow",
+  "description": "Application workflow declaration that instantiates a DomainWorkflow for a specific application identity. Defines the Kueue Job references, entry conditions, terminal states, and temporal relationships for each phase in the application lifecycle.",
+  "x-ont-layer": "app-core",
+  "x-ont-stability": "alpha",
+  "x-ont-depends-on": [
+    {"group": "app.ontai.dev", "kind": "AppIdentity", "version": "v1alpha1"},
+    {"group": "core.ontai.dev", "kind": "DomainWorkflow", "version": "v1alpha1"}
+  ],
+  "type": "object",
+  "required": ["apiVersion", "kind", "metadata", "spec"],
+  "properties": {
+    "apiVersion": {
+      "type": "string",
+      "const": "app.ontai.dev/v1alpha1",
+      "description": "API version for this resource."
+    },
+    "kind": {
+      "type": "string",
+      "const": "AppWorkflow",
+      "description": "Resource kind."
+    },
+    "metadata": {
+      "$ref": "https://schema.ontai.dev/v1alpha1/shared/KubernetesMetadata.json",
+      "description": "Standard Kubernetes object metadata."
+    },
+    "spec": {
+      "type": "object",
+      "description": "Desired state of the AppWorkflow.",
+      "required": ["appIdentityRef", "domainWorkflowRef"],
+      "properties": {
+        "appIdentityRef": {
+          "type": "object",
+          "description": "Structured reference to the AppIdentity that owns this workflow declaration.",
+          "required": ["group", "kind", "version", "name"],
+          "properties": {
+            "group": { "type": "string", "const": "app.ontai.dev" },
+            "kind": { "type": "string", "const": "AppIdentity" },
+            "version": { "type": "string", "const": "v1alpha1" },
+            "name": { "type": "string", "description": "Name of the AppIdentity resource." }
+          },
+          "additionalProperties": false
+        },
+        "domainWorkflowRef": {
+          "type": "object",
+          "description": "Structured reference to the DomainWorkflow that governs this application's lifecycle.",
+          "required": ["group", "kind", "version", "name"],
+          "properties": {
+            "group": { "type": "string", "const": "core.ontai.dev" },
+            "kind": { "type": "string", "const": "DomainWorkflow" },
+            "version": { "type": "string", "const": "v1alpha1" },
+            "name": { "type": "string", "description": "Name of the DomainWorkflow resource." }
+          },
+          "additionalProperties": false
+        },
+        "phases": {
+          "type": "array",
+          "description": "List of workflow phases with their Kueue Job bindings, entry conditions, and terminal states.",
+          "items": {
+            "$ref": "#/$defs/WorkflowPhase"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "status": {
+      "type": "object",
+      "description": "Observed state of the AppWorkflow.",
+      "properties": {
+        "conditions": {
+          "type": "array",
+          "description": "Standard Kubernetes condition array for this resource.",
+          "items": { "$ref": "#/$defs/Condition" }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "WorkflowPhase": {
+      "type": "object",
+      "required": ["name"],
+      "description": "A single phase in the application workflow with its execution binding.",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name of the workflow phase. Must correspond to a phase declared in the referenced DomainWorkflow."
+        },
+        "kueueJobRef": {
+          "type": "object",
+          "description": "Reference to the Kueue Job that executes this phase. Set by the controller when the phase is active.",
+          "properties": {
+            "name": { "type": "string" },
+            "namespace": { "type": "string" }
+          },
+          "additionalProperties": false
+        },
+        "entryConditions": {
+          "type": "array",
+          "description": "Condition type strings that must all be True before this phase may begin.",
+          "items": { "type": "string" }
+        },
+        "terminalStates": {
+          "type": "array",
+          "description": "Phase names that terminate this workflow execution if reached.",
+          "items": { "type": "string" }
+        },
+        "temporalRelationships": {
+          "type": "array",
+          "description": "Temporal ordering relationships between this phase and named counterpart phases.",
+          "items": {
+            "type": "object",
+            "required": ["name", "counterpartRef"],
+            "properties": {
+              "name": { "type": "string", "description": "Name of this temporal relationship." },
+              "counterpartRef": {
+                "type": "object",
+                "description": "Reference to the counterpart phase or resource.",
+                "properties": {
+                  "kind": { "type": "string" },
+                  "name": { "type": "string" }
+                },
+                "additionalProperties": false
+              },
+              "duration": { "type": "string", "description": "Expected duration for this temporal relationship in Go duration format (e.g., 5m, 1h)." }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "Condition": {
+      "type": "object",
+      "required": ["type", "status", "lastTransitionTime", "reason", "message"],
+      "properties": {
+        "type": { "type": "string" },
+        "status": { "type": "string", "enum": ["True", "False", "Unknown"] },
+        "lastTransitionTime": { "type": "string", "format": "date-time" },
+        "reason": { "type": "string" },
+        "message": { "type": "string" },
+        "observedGeneration": { "type": "integer" }
+      },
+      "additionalProperties": false
+    }
+  }
+}

@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schema.ontai.dev/v1alpha1/domain-core/DomainRelationship.json",
+  "title": "DomainRelationship",
+  "description": "Typed directional association between two domain identities. Establishes the formal relationship vocabulary for the ONT platform. The six founding relationships (guardian-provisions-rbacprofile, guardian-signs-conductor, conductor-signs-clusterpack, platform-creates-runnerconfig, seam-core-tracks-lineage, wrapper-creates-packexecution) are declared as DomainRelationship instances. No controller runs at Layer 0.",
+  "x-ont-layer": "domain-core",
+  "x-ont-stability": "alpha",
+  "x-ont-depends-on": [
+    {"group": "core.ontai.dev", "kind": "DomainIdentity", "version": "v1alpha1"},
+    {"group": "shared", "kind": "BindingStability", "version": "v1alpha1"}
+  ],
+  "type": "object",
+  "required": ["apiVersion", "kind", "metadata", "spec"],
+  "properties": {
+    "apiVersion": {
+      "type": "string",
+      "const": "core.ontai.dev/v1alpha1",
+      "description": "API version for this resource."
+    },
+    "kind": {
+      "type": "string",
+      "const": "DomainRelationship",
+      "description": "Resource kind."
+    },
+    "metadata": {
+      "$ref": "https://schema.ontai.dev/v1alpha1/shared/KubernetesMetadata.json",
+      "description": "Standard Kubernetes object metadata."
+    },
+    "spec": {
+      "type": "object",
+      "description": "Desired state of the DomainRelationship.",
+      "required": ["sourceIdentity", "targetIdentity", "relationshipType"],
+      "properties": {
+        "sourceIdentity": {
+          "type": "string",
+          "description": "Name of the DomainIdentity that is the source (subject) of this relationship."
+        },
+        "targetIdentity": {
+          "type": "string",
+          "description": "Name of the DomainIdentity that is the target (object) of this relationship."
+        },
+        "relationshipType": {
+          "type": "string",
+          "description": "Typed directional classification of the relationship. Controlled vocabulary owned by Seam Core shared library (CLAUDE.md Section 14 Decision 5).",
+          "enum": ["signs", "provisions", "delegates", "governs", "observes", "depends-on", "extends"]
+        },
+        "protocol": {
+          "type": "string",
+          "description": "Communication or trust protocol used in this relationship (e.g., ed25519, rbac, grpc, kubernetes-admission, kubernetes-api)."
+        },
+        "description": {
+          "type": "string",
+          "description": "Human-readable explanation of the directional association and its operational significance."
+        },
+        "bindingStability": {
+          "$ref": "https://schema.ontai.dev/v1alpha1/shared/BindingStability.json",
+          "description": "Binding stability descriptor for this relationship."
+        }
+      },
+      "additionalProperties": false
+    },
+    "status": {
+      "type": "object",
+      "description": "Observed state of the DomainRelationship.",
+      "properties": {
+        "conditions": {
+          "type": "array",
+          "description": "Standard Kubernetes condition array for this resource.",
+          "items": { "$ref": "#/$defs/Condition" }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "Condition": {
+      "type": "object",
+      "required": ["type", "status", "lastTransitionTime", "reason", "message"],
+      "properties": {
+        "type": { "type": "string" },
+        "status": { "type": "string", "enum": ["True", "False", "Unknown"] },
+        "lastTransitionTime": { "type": "string", "format": "date-time" },
+        "reason": { "type": "string" },
+        "message": { "type": "string" },
+        "observedGeneration": { "type": "integer" }
+      },
+      "additionalProperties": false
+    }
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schema.ontai.dev/v1alpha1/shared/SealedCausalChain.json",
+  "title": "SealedCausalChain",
+  "description": "Immutable causal chain record linking a derived object back to its root declaration. All fields are set once at creation time and are never modified thereafter. The admission webhook rejects any write that alters a SealedCausalChain field after creation.",
+  "x-ont-layer": "shared",
+  "x-ont-stability": "alpha",
+  "x-ont-depends-on": [],
+  "type": "object",
+  "required": ["originKind", "originName", "originNamespace", "creationRationale", "sealedAt", "sealedBy"],
+  "properties": {
+    "originKind": {
+      "type": "string",
+      "description": "Kind of the root declaration that is the causal origin of this derived object (e.g., TalosCluster, PackExecution)."
+    },
+    "originName": {
+      "type": "string",
+      "description": "Name of the root declaration that is the causal origin of this derived object."
+    },
+    "originNamespace": {
+      "type": "string",
+      "description": "Namespace of the root declaration that is the causal origin of this derived object."
+    },
+    "creationRationale": {
+      "type": "string",
+      "description": "Controlled vocabulary value drawn from the Seam Core CreationRationale enumeration (pkg/lineage). Describes the reason this derived object was created.",
+      "enum": [
+        "ClusterProvision",
+        "ClusterDecommission",
+        "SecurityEnforcement",
+        "PackExecution",
+        "VirtualizationFulfillment",
+        "ConductorAssignment",
+        "VortexBinding"
+      ]
+    },
+    "sealedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp at which this causal chain record was sealed. Set once at creation and never updated."
+    },
+    "sealedBy": {
+      "type": "string",
+      "description": "Identity (service account or controller name) that sealed this causal chain record. Matches the controller's Kubernetes service account principal."
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schema.ontai.dev/v1alpha1/shared/KubernetesMetadata.json",
+  "title": "KubernetesMetadata",
+  "description": "Standard Kubernetes object metadata as defined by the ObjectMeta schema.",
+  "x-ont-layer": "shared",
+  "x-ont-stability": "alpha",
+  "x-ont-depends-on": [],
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Name must be unique within a namespace. Required at creation time."
+    },
+    "namespace": {
+      "type": "string",
+      "description": "Namespace defines the space within which each name must be unique."
+    },
+    "labels": {
+      "type": "object",
+      "description": "Map of string keys and values for organizing and selecting objects.",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "annotations": {
+      "type": "object",
+      "description": "Unstructured key-value map for storing arbitrary non-identifying metadata.",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "uid": {
+      "type": "string",
+      "description": "UID is the unique identifier for the object assigned by the system."
+    },
+    "resourceVersion": {
+      "type": "string",
+      "description": "An opaque value representing the internal version of this object."
+    },
+    "generation": {
+      "type": "integer",
+      "description": "A sequence number representing a specific generation of the desired state."
+    },
+    "creationTimestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "CreationTimestamp is a timestamp representing when this object was created."
+    },
+    "deletionTimestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "DeletionTimestamp is the time after which this resource will be deleted."
+    },
+    "finalizers": {
+      "type": "array",
+      "description": "Finalizers are identifiers that must be empty before the object is deleted.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "ownerReferences": {
+      "type": "array",
+      "description": "List of objects depended by this object.",
+      "items": {
+        "type": "object",
+        "required": ["apiVersion", "kind", "name", "uid"],
+        "properties": {
+          "apiVersion": { "type": "string" },
+          "kind": { "type": "string" },
+          "name": { "type": "string" },
+          "uid": { "type": "string" },
+          "controller": { "type": "boolean" },
+          "blockOwnerDeletion": { "type": "boolean" }
+        }
+      }
+    }
+  }
+}

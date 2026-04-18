@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schema.ontai.dev/v1alpha1/seam-core/SeamMembership.json",
+  "title": "SeamMembership",
+  "description": "Formal join declaration for an operator wishing to become a member of the Seam infrastructure family. Guardian validates and admits the membership after verifying the operator's RBACProfile. Operators that are not members may not be allocated PermissionSnapshots. The SeamMembershipReconciler implements a 7-step validation loop: fetch, patch-defer, find RBACProfile by principalRef, verify domainIdentityRef consistency, verify provisioning, set Validated=True, set Admitted=True.",
+  "x-ont-layer": "seam-core",
+  "x-ont-stability": "alpha",
+  "x-ont-depends-on": [
+    {"group": "core.ontai.dev", "kind": "DomainIdentity", "version": "v1alpha1"}
+  ],
+  "type": "object",
+  "required": ["apiVersion", "kind", "metadata", "spec"],
+  "properties": {
+    "apiVersion": {
+      "type": "string",
+      "const": "infrastructure.ontai.dev/v1alpha1",
+      "description": "API version for this resource."
+    },
+    "kind": {
+      "type": "string",
+      "const": "SeamMembership",
+      "description": "Resource kind."
+    },
+    "metadata": {
+      "$ref": "https://schema.ontai.dev/v1alpha1/shared/KubernetesMetadata.json",
+      "description": "Standard Kubernetes object metadata."
+    },
+    "spec": {
+      "type": "object",
+      "description": "Desired state of the SeamMembership.",
+      "required": ["appIdentityRef", "domainIdentityRef", "principalRef", "tier"],
+      "properties": {
+        "appIdentityRef": {
+          "type": "string",
+          "description": "References the operator's application-layer identity. For Seam family operators this is the operator name (guardian, platform, wrapper, conductor, seam-core, vortex)."
+        },
+        "domainIdentityRef": {
+          "type": "string",
+          "description": "References the DomainIdentity at core.ontai.dev that this operator traces to. Must match the domainIdentityRef on the operator's RBACProfile."
+        },
+        "principalRef": {
+          "type": "string",
+          "description": "Kubernetes service account that this operator runs as. Must match the principalRef on the operator's RBACProfile.",
+          "pattern": "^system:serviceaccount:[^:]+:[^:]+$"
+        },
+        "tier": {
+          "type": "string",
+          "description": "Membership tier. infrastructure: Seam family operators (guardian, platform, wrapper, conductor, seam-core). application: Application operators (vortex and future app operators).",
+          "enum": ["infrastructure", "application"]
+        }
+      },
+      "additionalProperties": false
+    },
+    "status": {
+      "type": "object",
+      "description": "Observed state of the SeamMembership set by the SeamMembershipReconciler.",
+      "properties": {
+        "admitted": {
+          "type": "boolean",
+          "description": "True when Guardian has validated and admitted this member. Set on first successful reconcile. Not overwritten on subsequent reconciles."
+        },
+        "admittedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp when Guardian admitted this member. Set once on first admission. Never overwritten on subsequent reconciles."
+        },
+        "permissionSnapshotRef": {
+          "type": "string",
+          "description": "Name of the PermissionSnapshot Guardian resolved for this member. Set after admission. infrastructure tier: snapshot-management. application tier: snapshot-{appIdentityRef}."
+        },
+        "conditions": {
+          "type": "array",
+          "description": "Status conditions for this SeamMembership. Condition types: Admitted, Validated. Reasons: MembershipAdmitted, DomainIdentityMismatch, PrincipalMismatch, RBACProfileNotProvisioned.",
+          "items": { "$ref": "#/$defs/Condition" }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "Condition": {
+      "type": "object",
+      "required": ["type", "status", "lastTransitionTime", "reason", "message"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "Condition type.",
+          "enum": ["Admitted", "Validated"]
+        },
+        "status": { "type": "string", "enum": ["True", "False", "Unknown"] },
+        "lastTransitionTime": { "type": "string", "format": "date-time" },
+        "reason": {
+          "type": "string",
+          "description": "Machine-readable reason.",
+          "enum": [
+            "MembershipAdmitted",
+            "DomainIdentityMismatch",
+            "PrincipalMismatch",
+            "RBACProfileNotProvisioned"
+          ]
+        },
+        "message": { "type": "string" },
+        "observedGeneration": { "type": "integer" }
+      },
+      "additionalProperties": false
+    }
+  }
+}

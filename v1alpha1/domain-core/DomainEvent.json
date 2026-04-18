@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schema.ontai.dev/v1alpha1/domain-core/DomainEvent.json",
+  "title": "DomainEvent",
+  "description": "Immutable record of a domain state transition. Declares the contract for events that domain identities produce or consume. Defines retention policy and consumer eligibility rules. No controller runs at Layer 0.",
+  "x-ont-layer": "domain-core",
+  "x-ont-stability": "alpha",
+  "x-ont-depends-on": [
+    {"group": "core.ontai.dev", "kind": "DomainIdentity", "version": "v1alpha1"}
+  ],
+  "type": "object",
+  "required": ["apiVersion", "kind", "metadata", "spec"],
+  "properties": {
+    "apiVersion": {
+      "type": "string",
+      "const": "core.ontai.dev/v1alpha1",
+      "description": "API version for this resource."
+    },
+    "kind": {
+      "type": "string",
+      "const": "DomainEvent",
+      "description": "Resource kind."
+    },
+    "metadata": {
+      "$ref": "https://schema.ontai.dev/v1alpha1/shared/KubernetesMetadata.json",
+      "description": "Standard Kubernetes object metadata."
+    },
+    "spec": {
+      "type": "object",
+      "description": "Desired state of the DomainEvent declaration.",
+      "required": ["domainIdentityRef", "eventType", "producerAuthority"],
+      "properties": {
+        "domainIdentityRef": {
+          "type": "object",
+          "description": "Structured reference to the DomainIdentity that owns this event type.",
+          "required": ["group", "kind", "version", "name"],
+          "properties": {
+            "group": { "type": "string", "const": "core.ontai.dev" },
+            "kind": { "type": "string", "const": "DomainIdentity" },
+            "version": { "type": "string", "const": "v1alpha1" },
+            "name": { "type": "string", "description": "Name of the DomainIdentity resource." }
+          },
+          "additionalProperties": false
+        },
+        "eventType": {
+          "type": "string",
+          "description": "Canonical name for this event type (e.g., ClusterProvisioned, PackDelivered, MembershipAdmitted)."
+        },
+        "producerAuthority": {
+          "type": "string",
+          "description": "Name of the operator or component that is the authoritative producer of this event type."
+        },
+        "schemaVersion": {
+          "type": "string",
+          "description": "Version string for the event payload schema. Compatible AppEventSchema instances must carry a compatible schemaVersion."
+        },
+        "consumerEligibilityRules": {
+          "type": "array",
+          "description": "List of rules or conditions that determine which domain identities are eligible to consume this event type.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "retentionPolicy": {
+          "type": "object",
+          "description": "Retention policy for events of this type.",
+          "required": ["durationDays"],
+          "properties": {
+            "durationDays": {
+              "type": "integer",
+              "description": "Number of days to retain event records of this type.",
+              "minimum": 1
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "status": {
+      "type": "object",
+      "description": "Observed state of the DomainEvent.",
+      "properties": {
+        "conditions": {
+          "type": "array",
+          "description": "Standard Kubernetes condition array for this resource.",
+          "items": { "$ref": "#/$defs/Condition" }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "Condition": {
+      "type": "object",
+      "required": ["type", "status", "lastTransitionTime", "reason", "message"],
+      "properties": {
+        "type": { "type": "string" },
+        "status": { "type": "string", "enum": ["True", "False", "Unknown"] },
+        "lastTransitionTime": { "type": "string", "format": "date-time" },
+        "reason": { "type": "string" },
+        "message": { "type": "string" },
+        "observedGeneration": { "type": "integer" }
+      },
+      "additionalProperties": false
+    }
+  }
+}

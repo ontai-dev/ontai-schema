@@ -1,0 +1,113 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schema.ontai.dev/v1alpha1/app-core/AppEventSchema.json",
+  "title": "AppEventSchema",
+  "description": "Application event schema registration. Declares this application's role (producer, consumer, or both) for a specific DomainEvent type. The schemaVersion declared here must be compatible with the schemaVersion declared on the referenced DomainEvent.",
+  "x-ont-layer": "app-core",
+  "x-ont-stability": "alpha",
+  "x-ont-depends-on": [
+    {"group": "app.ontai.dev", "kind": "AppIdentity", "version": "v1alpha1"},
+    {"group": "core.ontai.dev", "kind": "DomainEvent", "version": "v1alpha1"}
+  ],
+  "type": "object",
+  "required": ["apiVersion", "kind", "metadata", "spec"],
+  "properties": {
+    "apiVersion": {
+      "type": "string",
+      "const": "app.ontai.dev/v1alpha1",
+      "description": "API version for this resource."
+    },
+    "kind": {
+      "type": "string",
+      "const": "AppEventSchema",
+      "description": "Resource kind."
+    },
+    "metadata": {
+      "$ref": "https://schema.ontai.dev/v1alpha1/shared/KubernetesMetadata.json",
+      "description": "Standard Kubernetes object metadata."
+    },
+    "spec": {
+      "type": "object",
+      "description": "Desired state of the AppEventSchema.",
+      "required": ["appIdentityRef", "domainEventRef", "role", "topicName", "schemaVersion"],
+      "properties": {
+        "appIdentityRef": {
+          "type": "object",
+          "description": "Structured reference to the AppIdentity that owns this event schema registration.",
+          "required": ["group", "kind", "version", "name"],
+          "properties": {
+            "group": { "type": "string", "const": "app.ontai.dev" },
+            "kind": { "type": "string", "const": "AppIdentity" },
+            "version": { "type": "string", "const": "v1alpha1" },
+            "name": { "type": "string", "description": "Name of the AppIdentity resource." }
+          },
+          "additionalProperties": false
+        },
+        "domainEventRef": {
+          "type": "object",
+          "description": "Structured reference to the DomainEvent type this registration covers.",
+          "required": ["group", "kind", "version", "name"],
+          "properties": {
+            "group": { "type": "string", "const": "core.ontai.dev" },
+            "kind": { "type": "string", "const": "DomainEvent" },
+            "version": { "type": "string", "const": "v1alpha1" },
+            "name": { "type": "string", "description": "Name of the DomainEvent resource." }
+          },
+          "additionalProperties": false
+        },
+        "role": {
+          "type": "string",
+          "description": "Role of this application with respect to the referenced event type.",
+          "enum": ["producer", "consumer", "both"]
+        },
+        "brokerRef": {
+          "type": "object",
+          "description": "Reference to the message broker resource used for this event type.",
+          "required": ["kind", "name"],
+          "properties": {
+            "kind": { "type": "string", "description": "Kind of the broker resource." },
+            "name": { "type": "string", "description": "Name of the broker resource." }
+          },
+          "additionalProperties": false
+        },
+        "topicName": {
+          "type": "string",
+          "description": "Name of the topic or channel on the broker for this event type."
+        },
+        "schemaVersion": {
+          "type": "string",
+          "description": "Version of the event payload schema used by this application. Must be compatible with DomainEvent.spec.schemaVersion."
+        }
+      },
+      "additionalProperties": false
+    },
+    "status": {
+      "type": "object",
+      "description": "Observed state of the AppEventSchema.",
+      "properties": {
+        "conditions": {
+          "type": "array",
+          "description": "Standard Kubernetes condition array for this resource.",
+          "items": { "$ref": "#/$defs/Condition" }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "Condition": {
+      "type": "object",
+      "required": ["type", "status", "lastTransitionTime", "reason", "message"],
+      "properties": {
+        "type": { "type": "string" },
+        "status": { "type": "string", "enum": ["True", "False", "Unknown"] },
+        "lastTransitionTime": { "type": "string", "format": "date-time" },
+        "reason": { "type": "string" },
+        "message": { "type": "string" },
+        "observedGeneration": { "type": "integer" }
+      },
+      "additionalProperties": false
+    }
+  }
+}

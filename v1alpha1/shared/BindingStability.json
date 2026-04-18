@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schema.ontai.dev/v1alpha1/shared/BindingStability.json",
+  "title": "BindingStability",
+  "description": "Reusable binding stability descriptor for cross-operator relationship wiring. Embedded in topology and relationship spec fields to declare the stability contract between two bound parties.",
+  "x-ont-layer": "shared",
+  "x-ont-stability": "alpha",
+  "x-ont-depends-on": [],
+  "type": "object",
+  "required": ["bindingType", "bindingState"],
+  "properties": {
+    "bindingType": {
+      "type": "string",
+      "description": "Classifies the binding contract. SnapshotBinding holds state at a point in time; ContinuousBinding maintains a live constraint relationship.",
+      "enum": ["SnapshotBinding", "ContinuousBinding"]
+    },
+    "bindingState": {
+      "type": "string",
+      "description": "Current observed state of the binding relationship.",
+      "enum": ["Stable", "Diverged", "Degraded", "Invalid", "Resolving"]
+    },
+    "boundAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp when the SnapshotBinding was established. Required when bindingType is SnapshotBinding."
+    },
+    "constraintDeclaration": {
+      "type": "object",
+      "description": "Constraint parameters for a ContinuousBinding. Required when bindingType is ContinuousBinding.",
+      "required": ["boundaryScope", "policyScope", "cardinalityFloor", "cardinalityCeiling"],
+      "properties": {
+        "boundaryScope": {
+          "type": "string",
+          "description": "The organizational or infrastructure boundary within which this continuous binding is enforced."
+        },
+        "policyScope": {
+          "type": "string",
+          "description": "The policy domain that governs cardinality and constraint evaluation for this binding."
+        },
+        "cardinalityFloor": {
+          "type": "integer",
+          "description": "Minimum number of bound counterparts required for the binding to be considered Stable.",
+          "minimum": 0
+        },
+        "cardinalityCeiling": {
+          "type": "integer",
+          "description": "Maximum number of bound counterparts permitted before the binding is considered Invalid.",
+          "minimum": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "selectionStrategy": {
+      "type": "string",
+      "description": "Strategy used to select or rank counterparts within this binding. Applies primarily to ContinuousBinding when multiple candidates are eligible.",
+      "enum": [
+        "Deterministic-Stable",
+        "Deterministic-Locality",
+        "Deterministic-Priority",
+        "Declared-Rotation"
+      ]
+    }
+  },
+  "additionalProperties": false
+}

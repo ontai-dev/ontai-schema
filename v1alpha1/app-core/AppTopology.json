@@ -1,0 +1,133 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schema.ontai.dev/v1alpha1/app-core/AppTopology.json",
+  "title": "AppTopology",
+  "description": "Application topology declaration. Defines the wiring between this application and its counterparts via typed DomainRelationship references. Every wiring must reference a DomainRelationship that exists in the domain-core layer; wirings that do not trace to a DomainRelationship are rejected by admission.",
+  "x-ont-layer": "app-core",
+  "x-ont-stability": "alpha",
+  "x-ont-depends-on": [
+    {"group": "app.ontai.dev", "kind": "AppIdentity", "version": "v1alpha1"},
+    {"group": "core.ontai.dev", "kind": "DomainRelationship", "version": "v1alpha1"},
+    {"group": "shared", "kind": "BindingStability", "version": "v1alpha1"}
+  ],
+  "type": "object",
+  "required": ["apiVersion", "kind", "metadata", "spec"],
+  "properties": {
+    "apiVersion": {
+      "type": "string",
+      "const": "app.ontai.dev/v1alpha1",
+      "description": "API version for this resource."
+    },
+    "kind": {
+      "type": "string",
+      "const": "AppTopology",
+      "description": "Resource kind."
+    },
+    "metadata": {
+      "$ref": "https://schema.ontai.dev/v1alpha1/shared/KubernetesMetadata.json",
+      "description": "Standard Kubernetes object metadata."
+    },
+    "spec": {
+      "type": "object",
+      "description": "Desired state of the AppTopology.",
+      "required": ["appIdentityRef"],
+      "properties": {
+        "appIdentityRef": {
+          "type": "object",
+          "description": "Structured reference to the AppIdentity that owns this topology declaration.",
+          "required": ["group", "kind", "version", "name"],
+          "properties": {
+            "group": { "type": "string", "const": "app.ontai.dev" },
+            "kind": { "type": "string", "const": "AppIdentity" },
+            "version": { "type": "string", "const": "v1alpha1" },
+            "name": { "type": "string", "description": "Name of the AppIdentity resource." }
+          },
+          "additionalProperties": false
+        },
+        "wirings": {
+          "type": "array",
+          "description": "List of topology wirings. Each wiring must reference a DomainRelationship. Wirings without a traceable DomainRelationship are rejected by admission.",
+          "items": {
+            "$ref": "#/$defs/TopologyWiring"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "status": {
+      "type": "object",
+      "description": "Observed state of the AppTopology.",
+      "properties": {
+        "conditions": {
+          "type": "array",
+          "description": "Standard Kubernetes condition array for this resource.",
+          "items": { "$ref": "#/$defs/Condition" }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "TopologyWiring": {
+      "type": "object",
+      "required": ["name", "domainRelationshipRef", "counterpartRef"],
+      "description": "A single typed wiring between this application and a counterpart. Must reference a DomainRelationship.",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Unique name for this wiring within the AppTopology."
+        },
+        "domainRelationshipRef": {
+          "type": "object",
+          "description": "Structured reference to the DomainRelationship that governs this wiring.",
+          "required": ["group", "kind", "version", "name"],
+          "properties": {
+            "group": { "type": "string", "const": "core.ontai.dev" },
+            "kind": { "type": "string", "const": "DomainRelationship" },
+            "version": { "type": "string", "const": "v1alpha1" },
+            "name": { "type": "string", "description": "Name of the DomainRelationship resource." }
+          },
+          "additionalProperties": false
+        },
+        "counterpartRef": {
+          "type": "object",
+          "description": "Structured reference to the counterpart resource in this wiring.",
+          "required": ["kind", "name", "namespace"],
+          "properties": {
+            "kind": { "type": "string", "description": "Kind of the counterpart resource." },
+            "name": { "type": "string", "description": "Name of the counterpart resource." },
+            "namespace": { "type": "string", "description": "Namespace of the counterpart resource." }
+          },
+          "additionalProperties": false
+        },
+        "bindingStability": {
+          "$ref": "https://schema.ontai.dev/v1alpha1/shared/BindingStability.json",
+          "description": "Binding stability descriptor for this wiring."
+        },
+        "interfaceVersion": {
+          "type": "string",
+          "description": "Interface or API version used in this wiring (e.g., v1alpha1, v1)."
+        },
+        "purpose": {
+          "type": "string",
+          "description": "Human-readable description of the purpose of this wiring."
+        }
+      },
+      "additionalProperties": false
+    },
+    "Condition": {
+      "type": "object",
+      "required": ["type", "status", "lastTransitionTime", "reason", "message"],
+      "properties": {
+        "type": { "type": "string" },
+        "status": { "type": "string", "enum": ["True", "False", "Unknown"] },
+        "lastTransitionTime": { "type": "string", "format": "date-time" },
+        "reason": { "type": "string" },
+        "message": { "type": "string" },
+        "observedGeneration": { "type": "integer" }
+      },
+      "additionalProperties": false
+    }
+  }
+}

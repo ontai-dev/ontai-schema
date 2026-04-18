@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schema.ontai.dev/v1alpha1/shared/RationaleField.json",
+  "title": "RationaleField",
+  "description": "Reusable rationale descriptor for governance events and decision records. Rationale is not a CRD spec field; it lives exclusively in GovernanceEvent. CRD specs do not carry rationale fields.",
+  "x-ont-layer": "shared",
+  "x-ont-stability": "alpha",
+  "x-ont-depends-on": [],
+  "type": "object",
+  "required": ["text"],
+  "properties": {
+    "text": {
+      "type": "string",
+      "description": "Human-readable rationale text explaining the decision or change. Minimum 10 characters, maximum 2000 characters.",
+      "minLength": 10,
+      "maxLength": 2000
+    },
+    "decisionAuthority": {
+      "type": "string",
+      "description": "The role or principal that holds decision authority for this change (e.g., Platform Governor, Schema Engineer)."
+    },
+    "alternativesConsidered": {
+      "type": "array",
+      "description": "List of alternative approaches that were considered and rejected before this decision was made.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "regulatoryReference": {
+      "type": "string",
+      "description": "Optional reference to a regulatory requirement, compliance framework, or legal obligation that motivated this decision."
+    }
+  },
+  "additionalProperties": false
+}

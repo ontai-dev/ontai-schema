@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schema.ontai.dev/v1alpha1/domain-core/DomainPolicy.json",
+  "title": "DomainPolicy",
+  "description": "Governing rule set applied to domain resources. Declares ceilings for retry, circuit breaker, rate limit, and cardinality that downstream AppPolicy instances must not exceed. Guardian validates AppPolicy against DomainPolicy ceilings. No controller runs at Layer 0.",
+  "x-ont-layer": "domain-core",
+  "x-ont-stability": "alpha",
+  "x-ont-depends-on": [
+    {"group": "core.ontai.dev", "kind": "DomainIdentity", "version": "v1alpha1"}
+  ],
+  "type": "object",
+  "required": ["apiVersion", "kind", "metadata", "spec"],
+  "properties": {
+    "apiVersion": {
+      "type": "string",
+      "const": "core.ontai.dev/v1alpha1",
+      "description": "API version for this resource."
+    },
+    "kind": {
+      "type": "string",
+      "const": "DomainPolicy",
+      "description": "Resource kind."
+    },
+    "metadata": {
+      "$ref": "https://schema.ontai.dev/v1alpha1/shared/KubernetesMetadata.json",
+      "description": "Standard Kubernetes object metadata."
+    },
+    "spec": {
+      "type": "object",
+      "description": "Desired state of the DomainPolicy.",
+      "required": ["domainIdentityRef"],
+      "properties": {
+        "domainIdentityRef": {
+          "type": "object",
+          "description": "Structured reference to the DomainIdentity this policy governs.",
+          "required": ["group", "kind", "version", "name"],
+          "properties": {
+            "group": { "type": "string", "const": "core.ontai.dev" },
+            "kind": { "type": "string", "const": "DomainIdentity" },
+            "version": { "type": "string", "const": "v1alpha1" },
+            "name": { "type": "string", "description": "Name of the DomainIdentity resource." }
+          },
+          "additionalProperties": false
+        },
+        "retryEnvelope": {
+          "type": "object",
+          "description": "Maximum retry parameters for operations within this domain. AppPolicy values must not exceed these ceilings.",
+          "required": ["maxAttempts", "backoffSeconds"],
+          "properties": {
+            "maxAttempts": {
+              "type": "integer",
+              "description": "Maximum number of retry attempts permitted for any operation in this domain.",
+              "minimum": 1
+            },
+            "backoffSeconds": {
+              "type": "integer",
+              "description": "Base backoff interval in seconds between retry attempts.",
+              "minimum": 1
+            }
+          },
+          "additionalProperties": false
+        },
+        "circuitBreakerThreshold": {
+          "type": "number",
+          "description": "Maximum circuit breaker failure rate threshold (0.0 to 1.0) permitted in this domain. AppPolicy values must not exceed this ceiling.",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "rateLimitRequestsPerSecond": {
+          "type": "integer",
+          "description": "Maximum request rate in requests per second permitted for any AppPolicy within this domain.",
+          "minimum": 1
+        },
+        "accessControlMode": {
+          "type": "string",
+          "description": "Access control model enforced within this domain.",
+          "enum": ["rbac", "abac", "both"]
+        },
+        "cardinalityCeiling": {
+          "type": "integer",
+          "description": "Maximum number of app-layer instances (AppIdentity, AppBoundary) permitted within this domain.",
+          "minimum": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "status": {
+      "type": "object",
+      "description": "Observed state of the DomainPolicy.",
+      "properties": {
+        "conditions": {
+          "type": "array",
+          "description": "Standard Kubernetes condition array for this resource.",
+          "items": { "$ref": "#/$defs/Condition" }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "Condition": {
+      "type": "object",
+      "required": ["type", "status", "lastTransitionTime", "reason", "message"],
+      "properties": {
+        "type": { "type": "string" },
+        "status": { "type": "string", "enum": ["True", "False", "Unknown"] },
+        "lastTransitionTime": { "type": "string", "format": "date-time" },
+        "reason": { "type": "string" },
+        "message": { "type": "string" },
+        "observedGeneration": { "type": "integer" }
+      },
+      "additionalProperties": false
+    }
+  }
+}

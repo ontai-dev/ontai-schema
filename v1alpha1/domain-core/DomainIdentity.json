@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schema.ontai.dev/v1alpha1/domain-core/DomainIdentity.json",
+  "title": "DomainIdentity",
+  "description": "Named principal that acts within the domain. Anchors all downstream derivation trees: every operator, service, and workload in the ONT platform traces its authority to a DomainIdentity. No controller runs at Layer 0.",
+  "x-ont-layer": "domain-core",
+  "x-ont-stability": "alpha",
+  "x-ont-depends-on": [],
+  "type": "object",
+  "required": ["apiVersion", "kind", "metadata", "spec"],
+  "properties": {
+    "apiVersion": {
+      "type": "string",
+      "const": "core.ontai.dev/v1alpha1",
+      "description": "API version for this resource."
+    },
+    "kind": {
+      "type": "string",
+      "const": "DomainIdentity",
+      "description": "Resource kind."
+    },
+    "metadata": {
+      "$ref": "https://schema.ontai.dev/v1alpha1/shared/KubernetesMetadata.json",
+      "description": "Standard Kubernetes object metadata."
+    },
+    "spec": {
+      "type": "object",
+      "description": "Desired state of the DomainIdentity.",
+      "required": ["name", "spiffeTrustDomain", "ontWebSubject", "operatorOwner", "registeredAt"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Canonical name of this domain identity. Unique within the ONT domain (e.g., guardian, platform, wrapper, conductor, seam-core)."
+        },
+        "spiffeTrustDomain": {
+          "type": "string",
+          "description": "SPIFFE trust domain associated with this identity (e.g., spiffe://ontai.dev/guardian). Used for workload identity federation and mTLS."
+        },
+        "ontWebSubject": {
+          "type": "string",
+          "description": "ONT Web subject identifier for this identity. Format: {name}.identity.ontai.dev"
+        },
+        "operatorOwner": {
+          "type": "string",
+          "description": "Name of the Seam operator that owns and manages this identity (e.g., guardian, platform, wrapper, conductor, seam-core)."
+        },
+        "registeredAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp when this domain identity was first registered in the ONT domain registry."
+        }
+      },
+      "additionalProperties": false
+    },
+    "status": {
+      "type": "object",
+      "description": "Observed state of the DomainIdentity.",
+      "properties": {
+        "conditions": {
+          "type": "array",
+          "description": "Standard Kubernetes condition array for this resource.",
+          "items": {
+            "$ref": "#/$defs/Condition"
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "Condition": {
+      "type": "object",
+      "required": ["type", "status", "lastTransitionTime", "reason", "message"],
+      "properties": {
+        "type": { "type": "string", "description": "Type of the condition." },
+        "status": { "type": "string", "enum": ["True", "False", "Unknown"], "description": "Status of the condition." },
+        "lastTransitionTime": { "type": "string", "format": "date-time", "description": "Last time the condition transitioned." },
+        "reason": { "type": "string", "description": "Machine-readable reason for the condition." },
+        "message": { "type": "string", "description": "Human-readable message for the condition." },
+        "observedGeneration": { "type": "integer", "description": "Generation observed when this condition was set." }
+      },
+      "additionalProperties": false
+    }
+  }
+}

@@ -1,0 +1,181 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schema.ontai.dev/v1alpha1/app-core/AppProfile.json",
+  "title": "AppProfile",
+  "description": "Aggregate root that composes all app-core CRDs for a single application. AppProfile does not reach Ready=true until all referenced child CRDs (AppBoundary, AppIdentity, AppPolicy, AppTopology, AppEventSchema, AppWorkflow, AppResourceProfile, AppAuditPolicy) have individually reached their terminal Ready state. The phase gate model governs progression through the eight canonical phases: ScopeEstablishment, IdentityRegistration, AuthorityResolution, StructuralWiring, EventContractRegistration, WorkflowBootstrap, BehavioralConfiguration, ProfileCompletion.",
+  "x-ont-layer": "app-core",
+  "x-ont-stability": "alpha",
+  "x-ont-depends-on": [
+    {"group": "app.ontai.dev", "kind": "AppBoundary", "version": "v1alpha1"},
+    {"group": "app.ontai.dev", "kind": "AppIdentity", "version": "v1alpha1"},
+    {"group": "app.ontai.dev", "kind": "AppPolicy", "version": "v1alpha1"},
+    {"group": "app.ontai.dev", "kind": "AppTopology", "version": "v1alpha1"},
+    {"group": "app.ontai.dev", "kind": "AppEventSchema", "version": "v1alpha1"},
+    {"group": "app.ontai.dev", "kind": "AppWorkflow", "version": "v1alpha1"},
+    {"group": "app.ontai.dev", "kind": "AppResourceProfile", "version": "v1alpha1"},
+    {"group": "app.ontai.dev", "kind": "AppAuditPolicy", "version": "v1alpha1"},
+    {"group": "shared", "kind": "PhaseModel", "version": "v1alpha1"}
+  ],
+  "type": "object",
+  "required": ["apiVersion", "kind", "metadata", "spec"],
+  "properties": {
+    "apiVersion": {
+      "type": "string",
+      "const": "app.ontai.dev/v1alpha1",
+      "description": "API version for this resource."
+    },
+    "kind": {
+      "type": "string",
+      "const": "AppProfile",
+      "description": "Resource kind."
+    },
+    "metadata": {
+      "$ref": "https://schema.ontai.dev/v1alpha1/shared/KubernetesMetadata.json",
+      "description": "Standard Kubernetes object metadata."
+    },
+    "spec": {
+      "type": "object",
+      "description": "Desired state of the AppProfile.",
+      "required": ["appBoundaryRef", "appIdentityRef"],
+      "properties": {
+        "appBoundaryRef": {
+          "type": "object",
+          "description": "Structured reference to the AppBoundary for this application profile.",
+          "required": ["group", "kind", "version", "name"],
+          "properties": {
+            "group": { "type": "string", "const": "app.ontai.dev" },
+            "kind": { "type": "string", "const": "AppBoundary" },
+            "version": { "type": "string", "const": "v1alpha1" },
+            "name": { "type": "string", "description": "Name of the AppBoundary resource." }
+          },
+          "additionalProperties": false
+        },
+        "appIdentityRef": {
+          "type": "object",
+          "description": "Structured reference to the AppIdentity for this application profile.",
+          "required": ["group", "kind", "version", "name"],
+          "properties": {
+            "group": { "type": "string", "const": "app.ontai.dev" },
+            "kind": { "type": "string", "const": "AppIdentity" },
+            "version": { "type": "string", "const": "v1alpha1" },
+            "name": { "type": "string", "description": "Name of the AppIdentity resource." }
+          },
+          "additionalProperties": false
+        },
+        "appPolicyRef": {
+          "type": "object",
+          "description": "Structured reference to the AppPolicy for this application profile.",
+          "required": ["group", "kind", "version", "name"],
+          "properties": {
+            "group": { "type": "string", "const": "app.ontai.dev" },
+            "kind": { "type": "string", "const": "AppPolicy" },
+            "version": { "type": "string", "const": "v1alpha1" },
+            "name": { "type": "string" }
+          },
+          "additionalProperties": false
+        },
+        "appTopologyRef": {
+          "type": "object",
+          "description": "Structured reference to the AppTopology for this application profile.",
+          "required": ["group", "kind", "version", "name"],
+          "properties": {
+            "group": { "type": "string", "const": "app.ontai.dev" },
+            "kind": { "type": "string", "const": "AppTopology" },
+            "version": { "type": "string", "const": "v1alpha1" },
+            "name": { "type": "string" }
+          },
+          "additionalProperties": false
+        },
+        "appEventSchemaRef": {
+          "type": "object",
+          "description": "Structured reference to the AppEventSchema for this application profile.",
+          "required": ["group", "kind", "version", "name"],
+          "properties": {
+            "group": { "type": "string", "const": "app.ontai.dev" },
+            "kind": { "type": "string", "const": "AppEventSchema" },
+            "version": { "type": "string", "const": "v1alpha1" },
+            "name": { "type": "string" }
+          },
+          "additionalProperties": false
+        },
+        "appWorkflowRef": {
+          "type": "object",
+          "description": "Structured reference to the AppWorkflow for this application profile.",
+          "required": ["group", "kind", "version", "name"],
+          "properties": {
+            "group": { "type": "string", "const": "app.ontai.dev" },
+            "kind": { "type": "string", "const": "AppWorkflow" },
+            "version": { "type": "string", "const": "v1alpha1" },
+            "name": { "type": "string" }
+          },
+          "additionalProperties": false
+        },
+        "appResourceProfileRef": {
+          "type": "object",
+          "description": "Structured reference to the AppResourceProfile for this application profile.",
+          "required": ["group", "kind", "version", "name"],
+          "properties": {
+            "group": { "type": "string", "const": "app.ontai.dev" },
+            "kind": { "type": "string", "const": "AppResourceProfile" },
+            "version": { "type": "string", "const": "v1alpha1" },
+            "name": { "type": "string" }
+          },
+          "additionalProperties": false
+        },
+        "appAuditPolicyRef": {
+          "type": "object",
+          "description": "Structured reference to the AppAuditPolicy for this application profile.",
+          "required": ["group", "kind", "version", "name"],
+          "properties": {
+            "group": { "type": "string", "const": "app.ontai.dev" },
+            "kind": { "type": "string", "const": "AppAuditPolicy" },
+            "version": { "type": "string", "const": "v1alpha1" },
+            "name": { "type": "string" }
+          },
+          "additionalProperties": false
+        },
+        "phaseModel": {
+          "$ref": "https://schema.ontai.dev/v1alpha1/shared/PhaseModel.json",
+          "description": "Phase gate model governing AppProfile lifecycle progression. Must declare all eight canonical phases."
+        }
+      },
+      "additionalProperties": false
+    },
+    "status": {
+      "type": "object",
+      "description": "Observed state of the AppProfile. Ready=true requires all child CRDs to be in terminal Ready state.",
+      "properties": {
+        "ready": {
+          "type": "boolean",
+          "description": "True when all referenced child CRDs have reached their terminal Ready state and all eight phases have completed."
+        },
+        "currentPhase": {
+          "type": "string",
+          "description": "Name of the current active phase in the lifecycle phase gate model."
+        },
+        "conditions": {
+          "type": "array",
+          "description": "Standard Kubernetes condition array for this resource.",
+          "items": { "$ref": "#/$defs/Condition" }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "Condition": {
+      "type": "object",
+      "required": ["type", "status", "lastTransitionTime", "reason", "message"],
+      "properties": {
+        "type": { "type": "string" },
+        "status": { "type": "string", "enum": ["True", "False", "Unknown"] },
+        "lastTransitionTime": { "type": "string", "format": "date-time" },
+        "reason": { "type": "string" },
+        "message": { "type": "string" },
+        "observedGeneration": { "type": "integer" }
+      },
+      "additionalProperties": false
+    }
+  }
+}

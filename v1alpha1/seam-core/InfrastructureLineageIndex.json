@@ -1,0 +1,150 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schema.ontai.dev/v1alpha1/seam-core/InfrastructureLineageIndex.json",
+  "title": "InfrastructureLineageIndex",
+  "description": "Sealed causal chain index for a root declaration in the Seam infrastructure domain. Instantiates the abstract DomainLineageIndex from core.ontai.dev. One instance is created per root declaration by the InfrastructureLineageController. Controller-authored exclusively: the admission webhook rejects writes from any principal other than the designated controller service account (CLAUDE.md Section 14 Decision 3). Lineage Index Pattern: one instance per root, not per derived object (CLAUDE.md Section 14 Decision 4).",
+  "x-ont-layer": "seam-core",
+  "x-ont-stability": "alpha",
+  "x-ont-depends-on": [
+    {"group": "core.ontai.dev", "kind": "DomainIdentity", "version": "v1alpha1"}
+  ],
+  "type": "object",
+  "required": ["apiVersion", "kind", "metadata", "spec"],
+  "properties": {
+    "apiVersion": {
+      "type": "string",
+      "const": "infrastructure.ontai.dev/v1alpha1",
+      "description": "API version for this resource."
+    },
+    "kind": {
+      "type": "string",
+      "const": "InfrastructureLineageIndex",
+      "description": "Resource kind."
+    },
+    "metadata": {
+      "$ref": "https://schema.ontai.dev/v1alpha1/shared/KubernetesMetadata.json",
+      "description": "Standard Kubernetes object metadata."
+    },
+    "spec": {
+      "type": "object",
+      "description": "Spec of the InfrastructureLineageIndex. Set by the InfrastructureLineageController. rootBinding is immutable after admission.",
+      "required": ["rootBinding"],
+      "properties": {
+        "domainRef": {
+          "type": "string",
+          "const": "infrastructure.core.ontai.dev",
+          "description": "Traceability link from the infrastructure domain to the domain core. When present, must equal infrastructure.core.ontai.dev. Validated by the admission webhook at CREATE time."
+        },
+        "rootBinding": {
+          "type": "object",
+          "description": "Identifies the root declaration that anchors this lineage index. Immutable after creation.",
+          "required": ["rootKind", "rootName", "rootNamespace", "rootUID", "rootObservedGeneration"],
+          "properties": {
+            "rootKind": {
+              "type": "string",
+              "description": "Kind of the root declaration (e.g., TalosCluster, PackExecution)."
+            },
+            "rootName": {
+              "type": "string",
+              "description": "Name of the root declaration."
+            },
+            "rootNamespace": {
+              "type": "string",
+              "description": "Namespace of the root declaration."
+            },
+            "rootUID": {
+              "type": "string",
+              "description": "UID of the root declaration at time of lineage index creation."
+            },
+            "rootObservedGeneration": {
+              "type": "integer",
+              "description": "metadata.generation of the root declaration when this index was created."
+            }
+          },
+          "additionalProperties": false
+        },
+        "descendants": {
+          "type": "array",
+          "description": "Registry of all objects derived from the root declaration. Entries are appended monotonically as new derived objects are created. Entries are never modified or removed.",
+          "items": {
+            "$ref": "#/$defs/DescendantEntry"
+          }
+        },
+        "governingOperator": {
+          "type": "string",
+          "description": "Name of the Seam operator that owns the root declaration type (e.g., platform, guardian, wrapper, conductor)."
+        }
+      },
+      "additionalProperties": false
+    },
+    "status": {
+      "type": "object",
+      "description": "Observed state of the InfrastructureLineageIndex.",
+      "properties": {
+        "observedGeneration": {
+          "type": "integer",
+          "description": "Last generation of the InfrastructureLineageIndex that the controller has processed."
+        },
+        "conditions": {
+          "type": "array",
+          "description": "Standard Kubernetes condition array for this resource.",
+          "items": { "$ref": "#/$defs/Condition" }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "DescendantEntry": {
+      "type": "object",
+      "required": ["kind", "name", "namespace", "relationship"],
+      "description": "A single derived object in the lineage derivation tree.",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "description": "Kind of the derived object."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the derived object."
+        },
+        "namespace": {
+          "type": "string",
+          "description": "Namespace of the derived object."
+        },
+        "relationship": {
+          "type": "string",
+          "description": "Relationship type from the root declaration to this derived object (e.g., generates, triggers, references)."
+        },
+        "creationRationale": {
+          "type": "string",
+          "description": "Controlled vocabulary value from the Seam Core CreationRationale enumeration (pkg/lineage).",
+          "enum": [
+            "ClusterProvision",
+            "ClusterDecommission",
+            "SecurityEnforcement",
+            "PackExecution",
+            "VirtualizationFulfillment",
+            "ConductorAssignment",
+            "VortexBinding"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "Condition": {
+      "type": "object",
+      "required": ["type", "status", "lastTransitionTime", "reason", "message"],
+      "properties": {
+        "type": { "type": "string" },
+        "status": { "type": "string", "enum": ["True", "False", "Unknown"] },
+        "lastTransitionTime": { "type": "string", "format": "date-time" },
+        "reason": { "type": "string" },
+        "message": { "type": "string" },
+        "observedGeneration": { "type": "integer" }
+      },
+      "additionalProperties": false
+    }
+  }
+}

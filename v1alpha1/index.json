@@ -1,0 +1,263 @@
+{
+  "version": "v1alpha1",
+  "publishedAt": "2026-04-18",
+  "stability": "alpha",
+  "layers": {
+    "shared": [
+      {
+        "kind": "KubernetesMetadata",
+        "file": "shared/KubernetesMetadata.json",
+        "stability": "alpha",
+        "description": "Standard Kubernetes object metadata schema used as a reusable $ref target.",
+        "dependsOn": []
+      },
+      {
+        "kind": "SealedCausalChain",
+        "file": "shared/SealedCausalChain.json",
+        "stability": "alpha",
+        "description": "Immutable causal chain record linking a derived object back to its root declaration.",
+        "dependsOn": []
+      },
+      {
+        "kind": "BindingStability",
+        "file": "shared/BindingStability.json",
+        "stability": "alpha",
+        "description": "Reusable binding stability descriptor for cross-operator relationship wiring.",
+        "dependsOn": []
+      },
+      {
+        "kind": "PhaseModel",
+        "file": "shared/PhaseModel.json",
+        "stability": "alpha",
+        "description": "Reusable lifecycle phase model declaring the eight canonical AppProfile phases.",
+        "dependsOn": []
+      },
+      {
+        "kind": "RationaleField",
+        "file": "shared/RationaleField.json",
+        "stability": "alpha",
+        "description": "Reusable rationale descriptor for governance events and decision records.",
+        "dependsOn": []
+      },
+      {
+        "kind": "GovernanceEvent",
+        "file": "shared/GovernanceEvent.json",
+        "stability": "alpha",
+        "description": "Reusable type representing a Layer One or Layer Two change event in the ONT governance plane.",
+        "dependsOn": [
+          {"group": "shared", "kind": "RationaleField", "version": "v1alpha1"}
+        ]
+      }
+    ],
+    "domain-core": [
+      {
+        "kind": "DomainIdentity",
+        "file": "domain-core/DomainIdentity.json",
+        "stability": "alpha",
+        "description": "Named principal that acts within the domain; anchors all downstream derivation trees.",
+        "dependsOn": []
+      },
+      {
+        "kind": "DomainBoundary",
+        "file": "domain-core/DomainBoundary.json",
+        "stability": "alpha",
+        "description": "Organizational and infrastructure boundary within which a domain identity operates.",
+        "dependsOn": [
+          {"group": "core.ontai.dev", "kind": "DomainIdentity", "version": "v1alpha1"}
+        ]
+      },
+      {
+        "kind": "DomainPolicy",
+        "file": "domain-core/DomainPolicy.json",
+        "stability": "alpha",
+        "description": "Governing rule set with ceilings for retry, circuit breaker, rate limit, and cardinality.",
+        "dependsOn": [
+          {"group": "core.ontai.dev", "kind": "DomainIdentity", "version": "v1alpha1"}
+        ]
+      },
+      {
+        "kind": "DomainRelationship",
+        "file": "domain-core/DomainRelationship.json",
+        "stability": "alpha",
+        "description": "Typed directional association between two domain identities using a controlled relationship vocabulary.",
+        "dependsOn": [
+          {"group": "core.ontai.dev", "kind": "DomainIdentity", "version": "v1alpha1"},
+          {"group": "shared", "kind": "BindingStability", "version": "v1alpha1"}
+        ]
+      },
+      {
+        "kind": "DomainEvent",
+        "file": "domain-core/DomainEvent.json",
+        "stability": "alpha",
+        "description": "Immutable record of a domain state transition with retention policy and consumer eligibility rules.",
+        "dependsOn": [
+          {"group": "core.ontai.dev", "kind": "DomainIdentity", "version": "v1alpha1"}
+        ]
+      },
+      {
+        "kind": "DomainWorkflow",
+        "file": "domain-core/DomainWorkflow.json",
+        "stability": "alpha",
+        "description": "Lifecycle workflow declaration defining phases, entry conditions, and terminal states.",
+        "dependsOn": [
+          {"group": "core.ontai.dev", "kind": "DomainIdentity", "version": "v1alpha1"}
+        ]
+      },
+      {
+        "kind": "DomainResource",
+        "file": "domain-core/DomainResource.json",
+        "stability": "alpha",
+        "description": "Governed infrastructure artifact declaring compute, storage, and cardinality ceilings.",
+        "dependsOn": [
+          {"group": "core.ontai.dev", "kind": "DomainIdentity", "version": "v1alpha1"}
+        ]
+      },
+      {
+        "kind": "DomainAudit",
+        "file": "domain-core/DomainAudit.json",
+        "stability": "alpha",
+        "description": "Audit requirements declaration with granularity floor, retention, and mandatory event types.",
+        "dependsOn": [
+          {"group": "core.ontai.dev", "kind": "DomainIdentity", "version": "v1alpha1"}
+        ]
+      },
+      {
+        "kind": "DomainSemanticNameService",
+        "file": "domain-core/DomainSemanticNameService.json",
+        "stability": "alpha",
+        "description": "Semantic name service declaration for a domain identity covering zone, record types, and resolution tiers.",
+        "dependsOn": [
+          {"group": "core.ontai.dev", "kind": "DomainIdentity", "version": "v1alpha1"}
+        ]
+      }
+    ],
+    "seam-core": [
+      {
+        "kind": "InfrastructureLineageIndex",
+        "file": "seam-core/InfrastructureLineageIndex.json",
+        "stability": "alpha",
+        "description": "Sealed causal chain index for a root declaration in the Seam infrastructure domain; controller-authored exclusively.",
+        "dependsOn": [
+          {"group": "core.ontai.dev", "kind": "DomainIdentity", "version": "v1alpha1"}
+        ]
+      },
+      {
+        "kind": "SeamMembership",
+        "file": "seam-core/SeamMembership.json",
+        "stability": "alpha",
+        "description": "Formal join declaration for an operator to become a member of the Seam infrastructure family.",
+        "dependsOn": [
+          {"group": "core.ontai.dev", "kind": "DomainIdentity", "version": "v1alpha1"}
+        ]
+      },
+      {
+        "kind": "DSNSZone",
+        "file": "seam-core/DSNSZone.json",
+        "stability": "alpha",
+        "description": "Domain Semantic Name Service zone owning a DNS zone and its controller-authored records.",
+        "dependsOn": [
+          {"group": "core.ontai.dev", "kind": "DomainSemanticNameService", "version": "v1alpha1"}
+        ]
+      }
+    ],
+    "app-core": [
+      {
+        "kind": "AppBoundary",
+        "file": "app-core/AppBoundary.json",
+        "stability": "alpha",
+        "description": "Namespace and cluster scope declaration that must reach Ready before AppIdentity may be created.",
+        "dependsOn": [
+          {"group": "core.ontai.dev", "kind": "DomainBoundary", "version": "v1alpha1"}
+        ]
+      },
+      {
+        "kind": "AppIdentity",
+        "file": "app-core/AppIdentity.json",
+        "stability": "alpha",
+        "description": "Root anchor for all sibling app-core CRDs; issues a SPIFFE ID for the application.",
+        "dependsOn": [
+          {"group": "core.ontai.dev", "kind": "DomainIdentity", "version": "v1alpha1"},
+          {"group": "app.ontai.dev", "kind": "AppBoundary", "version": "v1alpha1"}
+        ]
+      },
+      {
+        "kind": "AppPolicy",
+        "file": "app-core/AppPolicy.json",
+        "stability": "alpha",
+        "description": "Application policy instantiating a DomainPolicy ceiling; Guardian enforces ceiling compliance.",
+        "dependsOn": [
+          {"group": "app.ontai.dev", "kind": "AppIdentity", "version": "v1alpha1"},
+          {"group": "core.ontai.dev", "kind": "DomainPolicy", "version": "v1alpha1"}
+        ]
+      },
+      {
+        "kind": "AppTopology",
+        "file": "app-core/AppTopology.json",
+        "stability": "alpha",
+        "description": "Application topology with typed wirings that must each reference a DomainRelationship.",
+        "dependsOn": [
+          {"group": "app.ontai.dev", "kind": "AppIdentity", "version": "v1alpha1"},
+          {"group": "core.ontai.dev", "kind": "DomainRelationship", "version": "v1alpha1"},
+          {"group": "shared", "kind": "BindingStability", "version": "v1alpha1"}
+        ]
+      },
+      {
+        "kind": "AppEventSchema",
+        "file": "app-core/AppEventSchema.json",
+        "stability": "alpha",
+        "description": "Application event schema registration declaring producer, consumer, or both roles for a DomainEvent.",
+        "dependsOn": [
+          {"group": "app.ontai.dev", "kind": "AppIdentity", "version": "v1alpha1"},
+          {"group": "core.ontai.dev", "kind": "DomainEvent", "version": "v1alpha1"}
+        ]
+      },
+      {
+        "kind": "AppWorkflow",
+        "file": "app-core/AppWorkflow.json",
+        "stability": "alpha",
+        "description": "Application workflow instantiating a DomainWorkflow with Kueue Job bindings per phase.",
+        "dependsOn": [
+          {"group": "app.ontai.dev", "kind": "AppIdentity", "version": "v1alpha1"},
+          {"group": "core.ontai.dev", "kind": "DomainWorkflow", "version": "v1alpha1"}
+        ]
+      },
+      {
+        "kind": "AppResourceProfile",
+        "file": "app-core/AppResourceProfile.json",
+        "stability": "alpha",
+        "description": "Application resource claim against DomainResource ceilings; immutable after Running state.",
+        "dependsOn": [
+          {"group": "app.ontai.dev", "kind": "AppIdentity", "version": "v1alpha1"},
+          {"group": "core.ontai.dev", "kind": "DomainResource", "version": "v1alpha1"}
+        ]
+      },
+      {
+        "kind": "AppAuditPolicy",
+        "file": "app-core/AppAuditPolicy.json",
+        "stability": "alpha",
+        "description": "Application audit policy; granularity must not be below DomainAudit floor, enforced by Guardian.",
+        "dependsOn": [
+          {"group": "app.ontai.dev", "kind": "AppIdentity", "version": "v1alpha1"},
+          {"group": "core.ontai.dev", "kind": "DomainAudit", "version": "v1alpha1"}
+        ]
+      },
+      {
+        "kind": "AppProfile",
+        "file": "app-core/AppProfile.json",
+        "stability": "alpha",
+        "description": "Aggregate root composing all app-core CRDs; reaches Ready only after all eight phase gates complete.",
+        "dependsOn": [
+          {"group": "app.ontai.dev", "kind": "AppBoundary", "version": "v1alpha1"},
+          {"group": "app.ontai.dev", "kind": "AppIdentity", "version": "v1alpha1"},
+          {"group": "app.ontai.dev", "kind": "AppPolicy", "version": "v1alpha1"},
+          {"group": "app.ontai.dev", "kind": "AppTopology", "version": "v1alpha1"},
+          {"group": "app.ontai.dev", "kind": "AppEventSchema", "version": "v1alpha1"},
+          {"group": "app.ontai.dev", "kind": "AppWorkflow", "version": "v1alpha1"},
+          {"group": "app.ontai.dev", "kind": "AppResourceProfile", "version": "v1alpha1"},
+          {"group": "app.ontai.dev", "kind": "AppAuditPolicy", "version": "v1alpha1"},
+          {"group": "shared", "kind": "PhaseModel", "version": "v1alpha1"}
+        ]
+      }
+    ]
+  }
+}

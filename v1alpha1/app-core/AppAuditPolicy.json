@@ -1,0 +1,106 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schema.ontai.dev/v1alpha1/app-core/AppAuditPolicy.json",
+  "title": "AppAuditPolicy",
+  "description": "Application audit policy declaration. Declares the event types emitted, granularity level, and transport path for this application's audit trail. Granularity must not be declared below the floor set by the referenced DomainAudit. Guardian enforces the floor at admission and on each reconcile cycle.",
+  "x-ont-layer": "app-core",
+  "x-ont-stability": "alpha",
+  "x-ont-depends-on": [
+    {"group": "app.ontai.dev", "kind": "AppIdentity", "version": "v1alpha1"},
+    {"group": "core.ontai.dev", "kind": "DomainAudit", "version": "v1alpha1"}
+  ],
+  "type": "object",
+  "required": ["apiVersion", "kind", "metadata", "spec"],
+  "properties": {
+    "apiVersion": {
+      "type": "string",
+      "const": "app.ontai.dev/v1alpha1",
+      "description": "API version for this resource."
+    },
+    "kind": {
+      "type": "string",
+      "const": "AppAuditPolicy",
+      "description": "Resource kind."
+    },
+    "metadata": {
+      "$ref": "https://schema.ontai.dev/v1alpha1/shared/KubernetesMetadata.json",
+      "description": "Standard Kubernetes object metadata."
+    },
+    "spec": {
+      "type": "object",
+      "description": "Desired state of the AppAuditPolicy.",
+      "required": ["appIdentityRef", "domainAuditRef", "emittedEventTypes", "granularity", "transportPath"],
+      "properties": {
+        "appIdentityRef": {
+          "type": "object",
+          "description": "Structured reference to the AppIdentity that owns this audit policy.",
+          "required": ["group", "kind", "version", "name"],
+          "properties": {
+            "group": { "type": "string", "const": "app.ontai.dev" },
+            "kind": { "type": "string", "const": "AppIdentity" },
+            "version": { "type": "string", "const": "v1alpha1" },
+            "name": { "type": "string", "description": "Name of the AppIdentity resource." }
+          },
+          "additionalProperties": false
+        },
+        "domainAuditRef": {
+          "type": "object",
+          "description": "Structured reference to the DomainAudit that declares the minimum floor for this audit policy.",
+          "required": ["group", "kind", "version", "name"],
+          "properties": {
+            "group": { "type": "string", "const": "core.ontai.dev" },
+            "kind": { "type": "string", "const": "DomainAudit" },
+            "version": { "type": "string", "const": "v1alpha1" },
+            "name": { "type": "string", "description": "Name of the DomainAudit resource." }
+          },
+          "additionalProperties": false
+        },
+        "emittedEventTypes": {
+          "type": "array",
+          "description": "List of event type names that this application emits to the audit trail. Must cover all DomainAudit.spec.mandatoryEventTypes.",
+          "items": { "type": "string" },
+          "minItems": 1
+        },
+        "granularity": {
+          "type": "string",
+          "description": "Audit event granularity level. Must not be below DomainAudit.spec.minimumEventGranularity. Guardian enforces this floor.",
+          "enum": ["high", "medium", "low"]
+        },
+        "transportPath": {
+          "type": "string",
+          "description": "Audit event transport path for this application.",
+          "enum": ["conductor-federation", "direct"]
+        }
+      },
+      "additionalProperties": false
+    },
+    "status": {
+      "type": "object",
+      "description": "Observed state of the AppAuditPolicy.",
+      "properties": {
+        "conditions": {
+          "type": "array",
+          "description": "Standard Kubernetes condition array for this resource.",
+          "items": { "$ref": "#/$defs/Condition" }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "Condition": {
+      "type": "object",
+      "required": ["type", "status", "lastTransitionTime", "reason", "message"],
+      "properties": {
+        "type": { "type": "string" },
+        "status": { "type": "string", "enum": ["True", "False", "Unknown"] },
+        "lastTransitionTime": { "type": "string", "format": "date-time" },
+        "reason": { "type": "string" },
+        "message": { "type": "string" },
+        "observedGeneration": { "type": "integer" }
+      },
+      "additionalProperties": false
+    }
+  }
+}

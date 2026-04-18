@@ -1,0 +1,114 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schema.ontai.dev/v1alpha1/app-core/AppResourceProfile.json",
+  "title": "AppResourceProfile",
+  "description": "Application resource profile that instantiates a DomainResource ceiling claim for a specific application identity. All resource claims must not exceed the ceilings declared by the referenced DomainResource. Immutable after the application reaches Running state: mutations are rejected by the admission webhook once status indicates the application is Running.",
+  "x-ont-layer": "app-core",
+  "x-ont-stability": "alpha",
+  "x-ont-depends-on": [
+    {"group": "app.ontai.dev", "kind": "AppIdentity", "version": "v1alpha1"},
+    {"group": "core.ontai.dev", "kind": "DomainResource", "version": "v1alpha1"}
+  ],
+  "type": "object",
+  "required": ["apiVersion", "kind", "metadata", "spec"],
+  "properties": {
+    "apiVersion": {
+      "type": "string",
+      "const": "app.ontai.dev/v1alpha1",
+      "description": "API version for this resource."
+    },
+    "kind": {
+      "type": "string",
+      "const": "AppResourceProfile",
+      "description": "Resource kind."
+    },
+    "metadata": {
+      "$ref": "https://schema.ontai.dev/v1alpha1/shared/KubernetesMetadata.json",
+      "description": "Standard Kubernetes object metadata."
+    },
+    "spec": {
+      "type": "object",
+      "description": "Desired state of the AppResourceProfile. Immutable after application reaches Running state.",
+      "required": ["appIdentityRef", "domainResourceRef"],
+      "properties": {
+        "appIdentityRef": {
+          "type": "object",
+          "description": "Structured reference to the AppIdentity that owns this resource profile.",
+          "required": ["group", "kind", "version", "name"],
+          "properties": {
+            "group": { "type": "string", "const": "app.ontai.dev" },
+            "kind": { "type": "string", "const": "AppIdentity" },
+            "version": { "type": "string", "const": "v1alpha1" },
+            "name": { "type": "string", "description": "Name of the AppIdentity resource." }
+          },
+          "additionalProperties": false
+        },
+        "domainResourceRef": {
+          "type": "object",
+          "description": "Structured reference to the DomainResource that declares the ceilings this profile must not exceed.",
+          "required": ["group", "kind", "version", "name"],
+          "properties": {
+            "group": { "type": "string", "const": "core.ontai.dev" },
+            "kind": { "type": "string", "const": "DomainResource" },
+            "version": { "type": "string", "const": "v1alpha1" },
+            "name": { "type": "string", "description": "Name of the DomainResource resource." }
+          },
+          "additionalProperties": false
+        },
+        "computeClaim": {
+          "type": "object",
+          "description": "Compute resource claim. Must not exceed DomainResource.spec.computeCeiling.",
+          "required": ["cpu", "memory"],
+          "properties": {
+            "cpu": { "type": "string", "description": "CPU claim in Kubernetes resource quantity format (e.g., 500m, 2)." },
+            "memory": { "type": "string", "description": "Memory claim in Kubernetes resource quantity format (e.g., 512Mi, 2Gi)." }
+          },
+          "additionalProperties": false
+        },
+        "storageClaim": {
+          "type": "object",
+          "description": "Storage resource claim. Must not exceed DomainResource.spec.storageCeiling.",
+          "required": ["capacity", "storageClass"],
+          "properties": {
+            "capacity": { "type": "string", "description": "Storage capacity claim in Kubernetes resource quantity format (e.g., 10Gi)." },
+            "storageClass": { "type": "string", "description": "Name of the StorageClass for this claim. Must be permitted by DomainResource.spec.storageCeiling.storageClass." }
+          },
+          "additionalProperties": false
+        },
+        "kueueResourceFlavor": {
+          "type": "string",
+          "description": "Name of the Kueue ResourceFlavor for this application's Job submissions. Must be in DomainResource.spec.kueueResourceFlavors."
+        }
+      },
+      "additionalProperties": false
+    },
+    "status": {
+      "type": "object",
+      "description": "Observed state of the AppResourceProfile.",
+      "properties": {
+        "conditions": {
+          "type": "array",
+          "description": "Standard Kubernetes condition array for this resource.",
+          "items": { "$ref": "#/$defs/Condition" }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "Condition": {
+      "type": "object",
+      "required": ["type", "status", "lastTransitionTime", "reason", "message"],
+      "properties": {
+        "type": { "type": "string" },
+        "status": { "type": "string", "enum": ["True", "False", "Unknown"] },
+        "lastTransitionTime": { "type": "string", "format": "date-time" },
+        "reason": { "type": "string" },
+        "message": { "type": "string" },
+        "observedGeneration": { "type": "integer" }
+      },
+      "additionalProperties": false
+    }
+  }
+}

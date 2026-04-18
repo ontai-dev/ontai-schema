@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schema.ontai.dev/v1alpha1/shared/GovernanceEvent.json",
+  "title": "GovernanceEvent",
+  "description": "Reusable type representing a Layer One or Layer Two change event in the ONT governance plane. Records the actor, the change, and the rationale for audit and compliance purposes.",
+  "x-ont-layer": "shared",
+  "x-ont-stability": "alpha",
+  "x-ont-depends-on": [],
+  "type": "object",
+  "required": ["timestamp", "actor", "changeType", "layer", "fieldChanged"],
+  "properties": {
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp at which this governance event occurred."
+    },
+    "actor": {
+      "type": "string",
+      "description": "Identity of the principal that caused this governance event. Typically a Kubernetes service account or human user identifier."
+    },
+    "actorRole": {
+      "type": "string",
+      "description": "Role of the actor at the time of this event (e.g., Platform Governor, Controller Engineer, Schema Engineer)."
+    },
+    "changeType": {
+      "type": "string",
+      "description": "Classification of the governance change.",
+      "enum": ["governance", "operational", "binding-state", "operator-event"]
+    },
+    "layer": {
+      "type": "string",
+      "description": "ONT layer at which this event occurred. Layer one is domain-core; layer two is seam-core and app-core.",
+      "enum": ["one", "two"]
+    },
+    "fieldChanged": {
+      "type": "string",
+      "description": "JSONPath-style path to the field that changed (e.g., spec.tier, status.admitted)."
+    },
+    "previousValue": {
+      "type": "string",
+      "description": "String representation of the field value before this change was applied."
+    },
+    "newValue": {
+      "type": "string",
+      "description": "String representation of the field value after this change was applied."
+    },
+    "rationale": {
+      "$ref": "https://schema.ontai.dev/v1alpha1/shared/RationaleField.json",
+      "description": "Structured rationale for this governance event. Required for governance and binding-state change types."
+    },
+    "regulatoryImplication": {
+      "type": "boolean",
+      "description": "True if this event has regulatory or compliance implications that require audit trail preservation.",
+      "default": false
+    },
+    "gitRef": {
+      "type": "string",
+      "description": "Git commit SHA or tag that corresponds to this governance event, if applicable."
+    },
+    "auditEventId": {
+      "type": "string",
+      "description": "Stable external audit event identifier for correlation with audit systems."
+    }
+  },
+  "additionalProperties": false
+}

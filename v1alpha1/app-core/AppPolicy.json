@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schema.ontai.dev/v1alpha1/app-core/AppPolicy.json",
+  "title": "AppPolicy",
+  "description": "Application-level policy declaration that instantiates a DomainPolicy ceiling for a specific application identity. All values must not exceed the ceilings declared by the referenced DomainPolicy. Guardian validates AppPolicy against DomainPolicy ceilings at admission and on each reconcile cycle. Attempts to exceed a DomainPolicy ceiling are rejected.",
+  "x-ont-layer": "app-core",
+  "x-ont-stability": "alpha",
+  "x-ont-depends-on": [
+    {"group": "app.ontai.dev", "kind": "AppIdentity", "version": "v1alpha1"},
+    {"group": "core.ontai.dev", "kind": "DomainPolicy", "version": "v1alpha1"}
+  ],
+  "type": "object",
+  "required": ["apiVersion", "kind", "metadata", "spec"],
+  "properties": {
+    "apiVersion": {
+      "type": "string",
+      "const": "app.ontai.dev/v1alpha1",
+      "description": "API version for this resource."
+    },
+    "kind": {
+      "type": "string",
+      "const": "AppPolicy",
+      "description": "Resource kind."
+    },
+    "metadata": {
+      "$ref": "https://schema.ontai.dev/v1alpha1/shared/KubernetesMetadata.json",
+      "description": "Standard Kubernetes object metadata."
+    },
+    "spec": {
+      "type": "object",
+      "description": "Desired state of the AppPolicy.",
+      "required": ["appIdentityRef", "domainPolicyRef"],
+      "properties": {
+        "appIdentityRef": {
+          "type": "object",
+          "description": "Structured reference to the AppIdentity this policy applies to.",
+          "required": ["group", "kind", "version", "name"],
+          "properties": {
+            "group": { "type": "string", "const": "app.ontai.dev" },
+            "kind": { "type": "string", "const": "AppIdentity" },
+            "version": { "type": "string", "const": "v1alpha1" },
+            "name": { "type": "string", "description": "Name of the AppIdentity resource." }
+          },
+          "additionalProperties": false
+        },
+        "domainPolicyRef": {
+          "type": "object",
+          "description": "Structured reference to the DomainPolicy that declares the governing ceilings for this AppPolicy.",
+          "required": ["group", "kind", "version", "name"],
+          "properties": {
+            "group": { "type": "string", "const": "core.ontai.dev" },
+            "kind": { "type": "string", "const": "DomainPolicy" },
+            "version": { "type": "string", "const": "v1alpha1" },
+            "name": { "type": "string", "description": "Name of the DomainPolicy resource." }
+          },
+          "additionalProperties": false
+        },
+        "retryEnvelope": {
+          "type": "object",
+          "description": "Retry parameters for this application. Must not exceed the DomainPolicy ceiling.",
+          "required": ["maxAttempts", "backoffSeconds"],
+          "properties": {
+            "maxAttempts": { "type": "integer", "minimum": 1, "description": "Maximum retry attempts. Must not exceed DomainPolicy.spec.retryEnvelope.maxAttempts." },
+            "backoffSeconds": { "type": "integer", "minimum": 1, "description": "Base backoff interval in seconds. Must not exceed DomainPolicy.spec.retryEnvelope.backoffSeconds." }
+          },
+          "additionalProperties": false
+        },
+        "circuitBreakerThreshold": {
+          "type": "number",
+          "description": "Circuit breaker failure rate threshold (0.0 to 1.0). Must not exceed DomainPolicy.spec.circuitBreakerThreshold.",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "rateLimitRequestsPerSecond": {
+          "type": "integer",
+          "description": "Request rate limit in requests per second. Must not exceed DomainPolicy.spec.rateLimitRequestsPerSecond.",
+          "minimum": 1
+        },
+        "accessControlMode": {
+          "type": "string",
+          "description": "Access control model for this application.",
+          "enum": ["rbac", "abac", "both"]
+        }
+      },
+      "additionalProperties": false
+    },
+    "status": {
+      "type": "object",
+      "description": "Observed state of the AppPolicy.",
+      "properties": {
+        "conditions": {
+          "type": "array",
+          "description": "Standard Kubernetes condition array for this resource.",
+          "items": { "$ref": "#/$defs/Condition" }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "Condition": {
+      "type": "object",
+      "required": ["type", "status", "lastTransitionTime", "reason", "message"],
+      "properties": {
+        "type": { "type": "string" },
+        "status": { "type": "string", "enum": ["True", "False", "Unknown"] },
+        "lastTransitionTime": { "type": "string", "format": "date-time" },
+        "reason": { "type": "string" },
+        "message": { "type": "string" },
+        "observedGeneration": { "type": "integer" }
+      },
+      "additionalProperties": false
+    }
+  }
+}

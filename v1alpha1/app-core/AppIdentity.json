@@ -1,0 +1,110 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schema.ontai.dev/v1alpha1/app-core/AppIdentity.json",
+  "title": "AppIdentity",
+  "description": "Root anchor for all sibling app-core CRDs (AppPolicy, AppTopology, AppEventSchema, AppWorkflow, AppResourceProfile, AppAuditPolicy). All sibling CRDs reference AppIdentity as their root. AppIdentity may only be created after the referenced AppBoundary has reached Ready=true. Deletion of AppIdentity triggers cascading deletion of all sibling CRDs in the app-core layer.",
+  "x-ont-layer": "app-core",
+  "x-ont-stability": "alpha",
+  "x-ont-depends-on": [
+    {"group": "core.ontai.dev", "kind": "DomainIdentity", "version": "v1alpha1"},
+    {"group": "app.ontai.dev", "kind": "AppBoundary", "version": "v1alpha1"}
+  ],
+  "type": "object",
+  "required": ["apiVersion", "kind", "metadata", "spec"],
+  "properties": {
+    "apiVersion": {
+      "type": "string",
+      "const": "app.ontai.dev/v1alpha1",
+      "description": "API version for this resource."
+    },
+    "kind": {
+      "type": "string",
+      "const": "AppIdentity",
+      "description": "Resource kind."
+    },
+    "metadata": {
+      "$ref": "https://schema.ontai.dev/v1alpha1/shared/KubernetesMetadata.json",
+      "description": "Standard Kubernetes object metadata."
+    },
+    "spec": {
+      "type": "object",
+      "description": "Desired state of the AppIdentity.",
+      "required": ["domainIdentityRef", "appBoundaryRef", "serviceName", "version", "operatorOwner"],
+      "properties": {
+        "domainIdentityRef": {
+          "type": "object",
+          "description": "Structured reference to the DomainIdentity that this application identity traces to.",
+          "required": ["group", "kind", "version", "name"],
+          "properties": {
+            "group": { "type": "string", "const": "core.ontai.dev" },
+            "kind": { "type": "string", "const": "DomainIdentity" },
+            "version": { "type": "string", "const": "v1alpha1" },
+            "name": { "type": "string", "description": "Name of the DomainIdentity resource." }
+          },
+          "additionalProperties": false
+        },
+        "appBoundaryRef": {
+          "type": "object",
+          "description": "Structured reference to the AppBoundary that scopes this application identity. AppBoundary must be Ready=true before AppIdentity creation is permitted.",
+          "required": ["group", "kind", "version", "name"],
+          "properties": {
+            "group": { "type": "string", "const": "app.ontai.dev" },
+            "kind": { "type": "string", "const": "AppBoundary" },
+            "version": { "type": "string", "const": "v1alpha1" },
+            "name": { "type": "string", "description": "Name of the AppBoundary resource." }
+          },
+          "additionalProperties": false
+        },
+        "serviceName": {
+          "type": "string",
+          "description": "Canonical service name for this application. Used as the basis for DSNS record generation."
+        },
+        "version": {
+          "type": "string",
+          "description": "Service version string (e.g., v1.2.0). Used for SPIFFE ID composition and audit tracking."
+        },
+        "operatorOwner": {
+          "type": "string",
+          "description": "Name of the Seam operator that owns and manages this application identity (e.g., platform, guardian)."
+        }
+      },
+      "additionalProperties": false
+    },
+    "status": {
+      "type": "object",
+      "description": "Observed state of the AppIdentity.",
+      "properties": {
+        "ready": {
+          "type": "boolean",
+          "description": "True when the AppIdentity has been validated and a SPIFFE ID has been issued."
+        },
+        "spiffeId": {
+          "type": "string",
+          "description": "SPIFFE Verifiable Identity Document URI issued for this application identity."
+        },
+        "conditions": {
+          "type": "array",
+          "description": "Standard Kubernetes condition array for this resource.",
+          "items": { "$ref": "#/$defs/Condition" }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "Condition": {
+      "type": "object",
+      "required": ["type", "status", "lastTransitionTime", "reason", "message"],
+      "properties": {
+        "type": { "type": "string" },
+        "status": { "type": "string", "enum": ["True", "False", "Unknown"] },
+        "lastTransitionTime": { "type": "string", "format": "date-time" },
+        "reason": { "type": "string" },
+        "message": { "type": "string" },
+        "observedGeneration": { "type": "integer" }
+      },
+      "additionalProperties": false
+    }
+  }
+}
