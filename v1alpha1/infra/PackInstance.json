@@ -62,6 +62,11 @@
           "type": "string",
           "description": "Human-readable summary of current drift state."
         },
+        "upgradeDirection": {
+          "type": "string",
+          "enum": ["Initial", "Upgrade", "Rollback", "Redeploy"],
+          "description": "Direction of the last version transition for this PackInstance. Initial: first deployment. Upgrade: newer ClusterPack version. Rollback: older ClusterPack version. Redeploy: same version reapplied. Set by PackExecutionReconciler via semver comparison. Decision 11."
+        },
         "deployedResources": {
           "type": "array",
           "description": "List of Kubernetes resources applied by the pack-deploy job for this PackInstance. Written by PackExecutionReconciler on success. Used by the PackInstance deletion handler to clean up deployed workload on ClusterPack deletion. Schema-first per Decision 11.",
