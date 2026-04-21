@@ -158,6 +158,16 @@
         "dependsOn": [
           {"group": "core.ontai.dev", "kind": "DomainSemanticNameService", "version": "v1alpha1"}
         ]
+      },
+      {
+        "kind": "PackOperationResult",
+        "file": "seam-core/PackOperationResult.json",
+        "stability": "alpha",
+        "description": "Immutable result record written by Conductor execute-mode Job after pack-deploy capability completes. Replaces ConfigMap output channel. Versioned across ClusterPack updates. Usable as lineagesink additional data.",
+        "dependsOn": [
+          {"group": "infra.ontai.dev", "kind": "PackExecution", "version": "v1alpha1"},
+          {"group": "infra.ontai.dev", "kind": "ClusterPack", "version": "v1alpha1"}
+        ]
       }
     ],
     "app-core": [

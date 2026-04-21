@@ -1,0 +1,168 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schema.ontai.dev/v1alpha1/seam-core/PackOperationResult.json",
+  "title": "PackOperationResult",
+  "description": "Immutable result record written by the Conductor execute-mode Job after pack-deploy capability completes. Replaces the ConfigMap output channel. One PackOperationResult per PackExecution, versioned across ClusterPack updates. Deleted when the target cluster is deleted. Usable as additional data for the lineagesink. seam-core-schema.md §8.",
+  "x-ont-layer": "seam-core",
+  "x-ont-stability": "alpha",
+  "x-ont-namespace": "seam-tenant-{clusterName}",
+  "x-ont-depends-on": ["infra/PackExecution", "infra/ClusterPack"],
+  "type": "object",
+  "required": ["spec"],
+  "properties": {
+    "spec": {
+      "type": "object",
+      "description": "PackOperationResult specification. Written by Conductor execute-mode Job before exit. Immutable after first write; subsequent writes patch in-place.",
+      "required": ["capability", "status"],
+      "properties": {
+        "packExecutionRef": {
+          "type": "string",
+          "description": "Name of the PackExecution CR that triggered this operation."
+        },
+        "clusterPackRef": {
+          "type": "string",
+          "description": "Name of the ClusterPack CR that was deployed."
+        },
+        "targetClusterRef": {
+          "type": "string",
+          "description": "Name of the target cluster this operation ran against."
+        },
+        "capability": {
+          "type": "string",
+          "description": "Name of the Conductor capability that produced this result (e.g., pack-deploy)."
+        },
+        "phase": {
+          "type": "string",
+          "description": "RunnerConfig phase this result belongs to.",
+          "x-ont-stability": "alpha"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["Succeeded", "Failed"],
+          "description": "Terminal status of the capability execution."
+        },
+        "startedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Time the capability execution began."
+        },
+        "completedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Time the capability execution finished (success or failure)."
+        },
+        "failureReason": {
+          "type": "object",
+          "description": "Populated when status is Failed. Nil on success.",
+          "properties": {
+            "category": {
+              "type": "string",
+              "enum": ["ValidationFailure", "CapabilityUnavailable", "ExecutionFailure", "ExternalDependencyFailure", "InvariantViolation", "LicenseViolation", "StorageUnavailable"],
+              "description": "Failure domain classification."
+            },
+            "reason": {
+              "type": "string",
+              "description": "Human-readable description of the specific failure."
+            },
+            "failedStep": {
+              "type": "string",
+              "description": "Name of the step that failed. Empty for single-step capabilities."
+            }
+          },
+          "additionalProperties": false
+        },
+        "deployedResources": {
+          "type": "array",
+          "description": "List of Kubernetes resources applied during this execution. Populated by pack-deploy on success. Used by PackInstanceReconciler for deletion cleanup.",
+          "items": {
+            "type": "object",
+            "required": ["apiVersion", "kind", "name"],
+            "properties": {
+              "apiVersion": {
+                "type": "string",
+                "description": "Kubernetes apiVersion (e.g., apps/v1, v1)."
+              },
+              "kind": {
+                "type": "string",
+                "description": "Kubernetes resource Kind (e.g., Deployment, Namespace)."
+              },
+              "namespace": {
+                "type": "string",
+                "description": "Namespace of the resource. Empty for cluster-scoped resources."
+              },
+              "name": {
+                "type": "string",
+                "description": "Resource name."
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "artifacts": {
+          "type": "array",
+          "description": "Structured references to artifacts produced by this execution. Never contains raw artifact content.",
+          "items": {
+            "type": "object",
+            "required": ["name", "kind", "reference"],
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Logical identifier for this artifact within the OperationResult."
+              },
+              "kind": {
+                "type": "string",
+                "enum": ["ConfigMap", "Secret", "OCIImage", "S3Object"],
+                "description": "Artifact type."
+              },
+              "reference": {
+                "type": "string",
+                "description": "Fully qualified reference for the artifact kind."
+              },
+              "checksum": {
+                "type": "string",
+                "description": "Content-addressed checksum. Format: sha256:<hex>. Empty if not applicable."
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "steps": {
+          "type": "array",
+          "description": "Individual step results for multi-step capabilities. Empty for single-step capabilities.",
+          "items": {
+            "type": "object",
+            "required": ["name", "status"],
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Step identifier within the capability."
+              },
+              "status": {
+                "type": "string",
+                "enum": ["Succeeded", "Failed"],
+                "description": "Terminal status of this step."
+              },
+              "startedAt": {
+                "type": "string",
+                "format": "date-time",
+                "description": "Time this step began execution."
+              },
+              "completedAt": {
+                "type": "string",
+                "format": "date-time",
+                "description": "Time this step finished execution."
+              },
+              "message": {
+                "type": "string",
+                "description": "Additional context about the step outcome."
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": true
+}
