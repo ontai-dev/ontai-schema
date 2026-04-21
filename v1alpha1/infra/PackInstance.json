@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schema.ontai.dev/v1alpha1/infra/PackInstance.json",
+  "title": "PackInstance",
+  "description": "Records the delivered state of a ClusterPack on a target cluster. Created by the PackExecutionReconciler after a successful pack-deploy job. One PackInstance per logical pack per target cluster. wrapper-schema.md §3.",
+  "x-ont-layer": "infra",
+  "x-ont-stability": "alpha",
+  "x-ont-namespace": "seam-tenant-{clusterName}",
+  "x-ont-depends-on": ["infra/ClusterPack"],
+  "type": "object",
+  "required": ["spec"],
+  "properties": {
+    "spec": {
+      "type": "object",
+      "description": "PackInstance specification. Written once at creation by the PackExecutionReconciler.",
+      "required": ["clusterPackRef", "targetClusterRef"],
+      "properties": {
+        "clusterPackRef": {
+          "type": "string",
+          "description": "Name of the ClusterPack CR that was delivered."
+        },
+        "version": {
+          "type": "string",
+          "description": "Semantic version of the ClusterPack that was delivered. Copied from ClusterPack.spec.version at creation time."
+        },
+        "targetClusterRef": {
+          "type": "string",
+          "description": "Name of the TalosCluster to which this pack was delivered."
+        },
+        "dependsOn": {
+          "type": "array",
+          "description": "Names of PackInstance CRs that this instance depends on.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "dependencyPolicy": {
+          "type": "object",
+          "description": "Behavior when a declared dependency PackInstance reports drift.",
+          "properties": {
+            "onDrift": {
+              "type": "string",
+              "enum": ["Block", "Warn", "Ignore"],
+              "description": "Policy when a dependency reports Drifted=True. Default: Warn."
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "status": {
+      "type": "object",
+      "description": "PackInstance runtime status. Written by the PackInstanceReconciler and conductor drift loop.",
+      "properties": {
+        "deliveredAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp when the pack was last confirmed delivered."
+        },
+        "driftSummary": {
+          "type": "string",
+          "description": "Human-readable summary of current drift state."
+        },
+        "deployedResources": {
+          "type": "array",
+          "description": "List of Kubernetes resources applied by the pack-deploy job for this PackInstance. Written by PackExecutionReconciler on success. Used by the PackInstance deletion handler to clean up deployed workload on ClusterPack deletion. Schema-first per Decision 11.",
+          "items": {
+            "type": "object",
+            "required": ["apiVersion", "kind", "name"],
+            "properties": {
+              "apiVersion": {
+                "type": "string",
+                "description": "Kubernetes apiVersion (e.g., apps/v1, v1)."
+              },
+              "kind": {
+                "type": "string",
+                "description": "Kubernetes resource Kind (e.g., Deployment, Namespace)."
+              },
+              "namespace": {
+                "type": "string",
+                "description": "Namespace of the resource. Empty for cluster-scoped resources."
+              },
+              "name": {
+                "type": "string",
+                "description": "Resource name."
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

@@ -71,6 +71,10 @@
           "description": "Build identity, timestamp, Helm chart digest, compiler version, compilation timestamp.",
           "additionalProperties": true
         },
+        "basePackName": {
+          "type": "string",
+          "description": "Logical pack name shared across versions (e.g., 'nginx-ingress'). Separate from the versioned CR name (e.g., 'nginx-ingress-v4.9.0-r1'). When set, PackInstances are named {basePackName}-{clusterName} so that a newer version of the same base pack supersedes an older one in-place rather than creating a parallel PackInstance. Schema-first per Decision 11."
+        },
         "targetClusters": {
           "type": "array",
           "description": "List of cluster names to which this ClusterPack should be delivered.",
