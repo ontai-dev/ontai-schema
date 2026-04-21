@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## v1alpha1 — Amendment 2026-04-21 (session/13-clusterpack-rbac-split)
+
+### infra (1 schema added)
+
+| Schema      | Description                                                                 |
+|-------------|-----------------------------------------------------------------------------|
+| ClusterPack | Management cluster record of an immutable compiled OCI artifact. Added rbacDigest and workloadDigest fields for two-layer RBAC/workload OCI artifact split. Guardian /rbac-intake processes the RBAC layer before workload apply proceeds. wrapper-schema.md §4. |
+
 ## v1alpha1 — Initial Release (2026-04-18)
 
 First versioned release of the ONT OpenAPI JSON Schema specification.

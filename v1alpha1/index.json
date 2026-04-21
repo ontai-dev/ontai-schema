@@ -259,5 +259,15 @@
         ]
       }
     ]
+  },
+    "infra": [
+      {
+        "kind": "ClusterPack",
+        "file": "infra/ClusterPack.json",
+        "stability": "alpha",
+        "description": "Management cluster record of an immutable compiled OCI artifact. Carries rbacDigest and workloadDigest for two-layer RBAC/workload split. wrapper-schema.md §4.",
+        "dependsOn": []
+      }
+    ]
   }
 }
