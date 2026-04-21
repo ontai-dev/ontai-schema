@@ -59,6 +59,10 @@
             "rootObservedGeneration": {
               "type": "integer",
               "description": "metadata.generation of the root declaration when this index was created."
+            },
+            "declaringPrincipal": {
+              "type": "string",
+              "description": "Identity of the human operator or automation principal that applied the root declaration CR. Stamped by the admission webhook via annotation infrastructure.ontai.dev/declaring-principal at CREATE time. Immutable after rootBinding is sealed."
             }
           },
           "additionalProperties": false
@@ -73,6 +77,13 @@
         "governingOperator": {
           "type": "string",
           "description": "Name of the Seam operator that owns the root declaration type (e.g., platform, guardian, wrapper, conductor)."
+        },
+        "outcomeRegistry": {
+          "type": "array",
+          "description": "Append-only registry of terminal outcomes for derived objects tracked in descendants. Entries are appended by LineageController when a terminal condition is observed on a tracked derived object. Entries are never modified or removed.",
+          "items": {
+            "$ref": "#/$defs/OutcomeEntry"
+          }
         }
       },
       "additionalProperties": false
@@ -129,6 +140,45 @@
             "ConductorAssignment",
             "VortexBinding"
           ]
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp when DescendantReconciler appended this entry. Set to the reconciler's current time at append. Immutable."
+        },
+        "actorRef": {
+          "type": "string",
+          "description": "Identity propagated from rootBinding.declaringPrincipal. Every derived object entry carries the initiating human principal from the root of its causal chain. Immutable."
+        }
+      },
+      "additionalProperties": false
+    },
+    "OutcomeEntry": {
+      "type": "object",
+      "required": ["derivedObjectUID", "outcomeType", "outcomeTimestamp"],
+      "description": "A terminal outcome record for a derived object tracked in descendants.",
+      "properties": {
+        "derivedObjectUID": {
+          "type": "string",
+          "description": "UID matching a derived object entry in descendants."
+        },
+        "outcomeType": {
+          "type": "string",
+          "enum": ["Succeeded", "Failed", "Drifted", "Superseded"],
+          "description": "Terminal classification of the derived object lifecycle."
+        },
+        "outcomeTimestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Time when the terminal condition was observed."
+        },
+        "outcomeRef": {
+          "type": "string",
+          "description": "Name of the OperationResult ConfigMap or terminal condition reason that produced this outcome classification. Optional."
+        },
+        "outcomeDetail": {
+          "type": "string",
+          "description": "Brief human-readable summary of the outcome. Written by LineageController from the terminal condition message. Optional."
         }
       },
       "additionalProperties": false

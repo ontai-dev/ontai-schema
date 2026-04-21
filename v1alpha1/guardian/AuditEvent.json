@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schema.ontai.dev/v1alpha1/guardian/AuditEvent.json",
+  "title": "AuditEvent",
+  "description": "A single audit event record written to the Guardian CNPG audit_events table by AuditWriter implementations. guardian-schema.md §17.",
+  "x-ont-layer": "guardian",
+  "x-ont-stability": "alpha",
+  "type": "object",
+  "required": ["ClusterID", "SequenceNumber", "Subject", "Action", "Resource", "Decision"],
+  "properties": {
+    "ClusterID": {
+      "type": "string",
+      "description": "Identifier of the cluster where the event originated."
+    },
+    "SequenceNumber": {
+      "type": "integer",
+      "description": "Monotonic event sequence number. Used for deduplication with ClusterID."
+    },
+    "Subject": {
+      "type": "string",
+      "description": "Identity of the principal performing the action."
+    },
+    "Action": {
+      "type": "string",
+      "description": "Dot-namespaced event type (e.g., rbac.wrapped, bootstrap.annotation_sweep)."
+    },
+    "Resource": {
+      "type": "string",
+      "description": "Name of the resource the action targets."
+    },
+    "Decision": {
+      "type": "string",
+      "enum": ["admit", "deny"],
+      "description": "Authorization decision."
+    },
+    "MatchedPolicy": {
+      "type": "string",
+      "description": "Name of the RBACPolicy or rule that produced the decision. Optional."
+    },
+    "LineageIndexRef": {
+      "$ref": "#/$defs/LineageIndexRef",
+      "description": "Reference to the InfrastructureLineageIndex governing the root declaration associated with this event. Optional -- absent for platform-wide events not associated with a specific root declaration."
+    }
+  },
+  "$defs": {
+    "LineageIndexRef": {
+      "type": "object",
+      "required": ["Name", "Namespace"],
+      "description": "Reference to an InfrastructureLineageIndex CR.",
+      "properties": {
+        "Name": {
+          "type": "string",
+          "description": "Name of the InfrastructureLineageIndex CR."
+        },
+        "Namespace": {
+          "type": "string",
+          "description": "Namespace of the InfrastructureLineageIndex CR."
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}
