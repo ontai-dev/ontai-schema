@@ -1,0 +1,100 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schema.ontai.dev/v1alpha1/infra/ClusterPack.json",
+  "title": "ClusterPack",
+  "description": "Management cluster record of an immutable compiled OCI artifact for a specific pack version. Produced by compiler packbuild. Never created at runtime. wrapper-schema.md §4.",
+  "x-ont-layer": "infra",
+  "x-ont-stability": "alpha",
+  "x-ont-depends-on": [],
+  "type": "object",
+  "required": ["spec"],
+  "properties": {
+    "spec": {
+      "type": "object",
+      "description": "ClusterPack specification. Immutable after creation except for status fields.",
+      "required": ["version", "registryRef"],
+      "properties": {
+        "version": {
+          "type": "string",
+          "description": "Declared version string. Immutable after creation."
+        },
+        "registryRef": {
+          "type": "object",
+          "description": "OCI registry reference for the full artifact.",
+          "required": ["url"],
+          "properties": {
+            "url": {
+              "type": "string",
+              "description": "OCI registry URL for the artifact."
+            },
+            "digest": {
+              "type": "string",
+              "description": "OCI content digest (sha256) of the full artifact."
+            }
+          },
+          "additionalProperties": false
+        },
+        "checksum": {
+          "type": "string",
+          "description": "Content-addressed checksum of the full artifact manifest set."
+        },
+        "rbacDigest": {
+          "type": "string",
+          "description": "OCI digest of the RBAC layer of this ClusterPack artifact. Contains ServiceAccount, Role, ClusterRole, RoleBinding, ClusterRoleBinding manifests extracted at compile time. Guardian /rbac-intake processes this layer before workload apply proceeds. Absent on pre-split ClusterPack specs for backward compatibility."
+        },
+        "workloadDigest": {
+          "type": "string",
+          "description": "OCI digest of the workload layer of this ClusterPack artifact. Contains all non-RBAC manifests. Applied after guardian RBACProfile for this pack reaches provisioned=true. Absent on pre-split ClusterPack specs for backward compatibility."
+        },
+        "sourceBuildRef": {
+          "type": "string",
+          "description": "Optional reference to the PackBuild spec file path in git. Provenance only -- not a cluster object reference."
+        },
+        "executionOrder": {
+          "type": "array",
+          "description": "Stage ordering derived from the compiled execution graph. Stages in order: rbac, storage, stateful, stateless.",
+          "items": {
+            "type": "object",
+            "required": ["name"],
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Stage name."
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "provenance": {
+          "type": "object",
+          "description": "Build identity, timestamp, Helm chart digest, compiler version, compilation timestamp.",
+          "additionalProperties": true
+        },
+        "targetClusters": {
+          "type": "array",
+          "description": "List of cluster names to which this ClusterPack should be delivered.",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "status": {
+      "type": "object",
+      "description": "ClusterPack runtime status. Written exclusively by the ClusterPackReconciler and conductor signing loop.",
+      "properties": {
+        "signed": {
+          "type": "boolean",
+          "description": "True after the conductor signing loop has verified and annotated the artifact."
+        },
+        "packSignature": {
+          "type": "string",
+          "description": "Base64-encoded platform signature written by the signing loop."
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}
