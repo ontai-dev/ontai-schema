@@ -47,6 +47,10 @@
           "type": "string",
           "description": "OCI digest of the workload layer of this ClusterPack artifact. Contains all non-RBAC manifests. Applied after guardian RBACProfile for this pack reaches provisioned=true. Absent on pre-split ClusterPack specs for backward compatibility."
         },
+        "clusterScopedDigest": {
+          "type": "string",
+          "description": "OCI digest of the cluster-scoped non-RBAC layer. Contains MutatingWebhookConfiguration, ValidatingWebhookConfiguration, CustomResourceDefinition, APIService, PriorityClass, StorageClass, IngressClass, ClusterIssuer, and similar cluster-scoped resources. Applied by the pack-deploy Job after guardian RBAC intake completes and before workload manifests are applied. Optional: absent when the chart has no cluster-scoped resources."
+        },
         "sourceBuildRef": {
           "type": "string",
           "description": "Optional reference to the PackBuild spec file path in git. Provenance only -- not a cluster object reference."
