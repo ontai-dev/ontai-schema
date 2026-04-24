@@ -1,0 +1,125 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schema.ontai.dev/v1alpha1/seam-core/InfrastructureClusterPack.json",
+  "title": "InfrastructureClusterPack",
+  "description": "Management cluster record of an immutable compiled OCI artifact for a specific pack version. Owned by seam-core; wrapper and conductor operate on instances of this type. Wrapper reconciler creates ClusterPack CRs; conductor signing loop updates status. Scope: Namespaced -- seam-system. wrapper-schema.md §4.",
+  "x-ont-layer": "seam-core",
+  "x-ont-stability": "alpha",
+  "x-ont-namespace": "seam-system",
+  "x-ont-depends-on": [],
+  "type": "object",
+  "required": ["spec"],
+  "properties": {
+    "spec": {
+      "type": "object",
+      "description": "InfrastructureClusterPack specification. Immutable after creation.",
+      "required": ["version", "registryRef"],
+      "properties": {
+        "version": {
+          "type": "string",
+          "description": "Declared version string. Immutable after creation."
+        },
+        "registryRef": {
+          "type": "object",
+          "description": "OCI registry reference for the full artifact.",
+          "required": ["url"],
+          "properties": {
+            "url": {
+              "type": "string",
+              "description": "OCI registry URL for the artifact."
+            },
+            "digest": {
+              "type": "string",
+              "description": "OCI content digest (sha256) of the full artifact."
+            }
+          },
+          "additionalProperties": false
+        },
+        "checksum": {
+          "type": "string",
+          "description": "Content-addressed checksum of the full artifact manifest set."
+        },
+        "rbacDigest": {
+          "type": "string",
+          "description": "OCI digest of the RBAC layer of this ClusterPack artifact. Contains ServiceAccount, Role, ClusterRole, RoleBinding, ClusterRoleBinding manifests extracted at compile time. Guardian /rbac-intake processes this layer before workload apply proceeds. Absent on pre-split specs for backward compatibility."
+        },
+        "workloadDigest": {
+          "type": "string",
+          "description": "OCI digest of the workload layer of this ClusterPack artifact. Contains all non-RBAC manifests. Applied after guardian RBACProfile for this pack reaches provisioned=true. Absent on pre-split specs for backward compatibility."
+        },
+        "clusterScopedDigest": {
+          "type": "string",
+          "description": "OCI digest of the cluster-scoped non-RBAC layer. Contains MutatingWebhookConfiguration, ValidatingWebhookConfiguration, CustomResourceDefinition, APIService, PriorityClass, StorageClass, IngressClass, ClusterIssuer, and similar cluster-scoped resources. Applied by the pack-deploy Job after guardian RBAC intake completes and before workload manifests are applied. Absent when the chart has no cluster-scoped resources."
+        },
+        "sourceBuildRef": {
+          "type": "string",
+          "description": "Optional reference to the PackBuild spec file path in git. Provenance only -- not a cluster object reference."
+        },
+        "executionOrder": {
+          "type": "array",
+          "description": "Stage ordering derived from the compiled execution graph. Stages in order: rbac, storage, stateful, stateless.",
+          "items": {
+            "type": "object",
+            "required": ["name"],
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Stage name."
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "provenance": {
+          "type": "object",
+          "description": "Build identity, timestamp, Helm chart digest, compiler version, compilation timestamp.",
+          "additionalProperties": true
+        },
+        "basePackName": {
+          "type": "string",
+          "description": "Logical pack name shared across versions (e.g., 'nginx-ingress'). When set, PackInstances are named {basePackName}-{clusterName} so a newer version of the same base pack supersedes an older one in-place rather than creating a parallel PackInstance."
+        },
+        "targetClusters": {
+          "type": "array",
+          "description": "List of cluster names to which this ClusterPack should be delivered.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "chartVersion": {
+          "type": "string",
+          "description": "Version of the Helm chart used to compile this pack. Absent for kustomize and raw category packs. Decision B."
+        },
+        "chartURL": {
+          "type": "string",
+          "description": "URL of the Helm chart repository used to compile this pack. Absent for kustomize and raw category packs. Decision B."
+        },
+        "chartName": {
+          "type": "string",
+          "description": "Name of the Helm chart used to compile this pack. Absent for kustomize and raw category packs. Decision B."
+        },
+        "helmVersion": {
+          "type": "string",
+          "description": "Version of the Helm SDK used to render this pack. Records the helm.sh/helm/v3 module version embedded in the Compiler binary at build time. Absent for kustomize and raw category packs. Decision B."
+        }
+      },
+      "additionalProperties": false
+    },
+    "status": {
+      "type": "object",
+      "description": "Runtime status. Written exclusively by the ClusterPackReconciler and conductor signing loop.",
+      "properties": {
+        "signed": {
+          "type": "boolean",
+          "description": "True after the conductor signing loop has verified and annotated the artifact."
+        },
+        "packSignature": {
+          "type": "string",
+          "description": "Base64-encoded platform signature written by the signing loop."
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}
