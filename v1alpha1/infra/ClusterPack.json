@@ -7,6 +7,8 @@
   "x-ont-stability": "alpha",
   "x-ont-namespace": "seam-system",
   "x-ont-depends-on": [],
+  "x-ont-deprecated": true,
+  "x-ont-superseded-by": "seam-core/InfrastructureClusterPack",
   "type": "object",
   "required": ["spec"],
   "properties": {
