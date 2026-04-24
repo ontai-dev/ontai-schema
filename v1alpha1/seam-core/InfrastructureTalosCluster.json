@@ -1,0 +1,98 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schema.ontai.dev/v1alpha1/seam-core/InfrastructureTalosCluster.json",
+  "title": "InfrastructureTalosCluster",
+  "description": "Root declaration CRD for a Talos cluster under Seam governance. Owned by seam-core; platform operator reconciles instances of this type. Declares whether the cluster is bootstrapped from scratch (mode=bootstrap) or imported from existing infrastructure (mode=import). On mode=import the role field is mandatory and must be one of management or tenant. platform-schema.md §4.",
+  "x-ont-layer": "seam-core",
+  "x-ont-stability": "alpha",
+  "x-ont-namespace": "seam-system",
+  "x-ont-depends-on": [],
+  "type": "object",
+  "required": ["spec"],
+  "properties": {
+    "spec": {
+      "type": "object",
+      "description": "InfrastructureTalosCluster specification. Immutable after admission except for status fields.",
+      "required": ["mode"],
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": ["bootstrap", "import"],
+          "description": "Declares whether this cluster provisions a new cluster (bootstrap) or records an existing cluster managed outside Seam (import). Immutable after creation."
+        },
+        "role": {
+          "type": "string",
+          "enum": ["management", "tenant"],
+          "description": "Declares the role of this cluster in the Seam topology. Mandatory on mode=import; absent on mode=bootstrap. management: this cluster is the Seam management cluster. tenant: this cluster is a target cluster governed by the management cluster."
+        },
+        "talosVersion": {
+          "type": "string",
+          "description": "Talos OS version for this cluster. Used by the Conductor to select a compatible conductor image per INV-012."
+        },
+        "capi": {
+          "type": "object",
+          "description": "CAPI integration settings. When absent the cluster uses the direct bootstrap path.",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "description": "When true the cluster is managed via Cluster API. When false or absent the direct bootstrap path is used."
+            }
+          },
+          "additionalProperties": false
+        },
+        "endpoint": {
+          "type": "string",
+          "description": "API server endpoint for the cluster. Required on mode=import. Optional on mode=bootstrap (derived from Talos machine config)."
+        },
+        "kubeconfigSecretRef": {
+          "type": "string",
+          "description": "Name of the Secret containing the kubeconfig for this cluster. Required on mode=import. Optional on mode=bootstrap (derived from talosconfig)."
+        },
+        "talosconfigSecretRef": {
+          "type": "string",
+          "description": "Name of the Secret containing the talosconfig for this cluster."
+        },
+        "lineage": {
+          "type": "object",
+          "description": "Sealed causal chain record. Authored once at object creation and immutable thereafter. seam-core-schema.md §5, CLAUDE.md Decision 1.",
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": false,
+      "x-kubernetes-validations": [
+        {
+          "rule": "self.mode != 'import' || (has(self.role) && (self.role == 'management' || self.role == 'tenant'))",
+          "message": "role must be present and one of management or tenant when mode is import"
+        }
+      ]
+    },
+    "status": {
+      "type": "object",
+      "description": "Runtime status. Written exclusively by the TalosClusterReconciler.",
+      "properties": {
+        "phase": {
+          "type": "string",
+          "description": "Current lifecycle phase of the cluster."
+        },
+        "ready": {
+          "type": "boolean",
+          "description": "True when the cluster has passed all readiness gates."
+        },
+        "conductorReady": {
+          "type": "boolean",
+          "description": "True when the Conductor agent on this cluster has started and registered its capability manifest. platform-schema.md §12."
+        },
+        "conditions": {
+          "type": "array",
+          "description": "Standard Kubernetes condition list.",
+          "items": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

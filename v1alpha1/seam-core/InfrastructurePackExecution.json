@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schema.ontai.dev/v1alpha1/seam-core/InfrastructurePackExecution.json",
+  "title": "InfrastructurePackExecution",
+  "description": "Runtime request to apply an InfrastructureClusterPack to a target cluster. Owned by seam-core; wrapper reconciler performs 4-gate check and submits pack-deploy Job via Kueue. One PackExecution per ClusterPack per target cluster deployment attempt. wrapper-schema.md §3.",
+  "x-ont-layer": "seam-core",
+  "x-ont-stability": "alpha",
+  "x-ont-namespace": "seam-system",
+  "x-ont-depends-on": ["seam-core/InfrastructureClusterPack"],
+  "type": "object",
+  "required": ["spec"],
+  "properties": {
+    "spec": {
+      "type": "object",
+      "description": "InfrastructurePackExecution specification. Immutable after creation.",
+      "required": ["clusterPackRef", "targetClusterRef", "admissionProfileRef"],
+      "properties": {
+        "clusterPackRef": {
+          "type": "object",
+          "description": "Identifies the InfrastructureClusterPack to deploy.",
+          "required": ["name", "version"],
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Name of the InfrastructureClusterPack CR."
+            },
+            "version": {
+              "type": "string",
+              "description": "Expected version of the ClusterPack. Guards against race conditions where the name is reused with a different version."
+            }
+          },
+          "additionalProperties": false
+        },
+        "targetClusterRef": {
+          "type": "string",
+          "description": "Name of the TalosCluster CR that is the deployment target. The cluster must be Ready before the pack-deploy Job will be admitted."
+        },
+        "admissionProfileRef": {
+          "type": "string",
+          "description": "Name of the RBACProfile that governs this execution. The 4-gate check verifies this profile has reached provisioned=true."
+        },
+        "chartVersion": {
+          "type": "string",
+          "description": "Version of the Helm chart being deployed. Copied from the referenced ClusterPack at execution time. Absent for kustomize and raw category packs. Decision B."
+        },
+        "chartURL": {
+          "type": "string",
+          "description": "URL of the Helm chart repository. Copied from the referenced ClusterPack at execution time. Absent for kustomize and raw category packs. Decision B."
+        },
+        "chartName": {
+          "type": "string",
+          "description": "Name of the Helm chart being deployed. Copied from the referenced ClusterPack at execution time. Absent for kustomize and raw category packs. Decision B."
+        },
+        "helmVersion": {
+          "type": "string",
+          "description": "Version of the Helm SDK used to render the ClusterPack. Copied from the referenced ClusterPack at execution time. Absent for kustomize and raw category packs. Decision B."
+        },
+        "lineage": {
+          "type": "object",
+          "description": "Sealed causal chain record. Authored once at object creation and immutable thereafter. seam-core-schema.md §5, CLAUDE.md Decision 1.",
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "status": {
+      "type": "object",
+      "description": "Runtime status. Written exclusively by the PackExecutionReconciler.",
+      "properties": {
+        "observedGeneration": {
+          "type": "integer",
+          "description": "Generation most recently reconciled."
+        },
+        "jobName": {
+          "type": "string",
+          "description": "Name of the pack-deploy Kueue Job that was submitted. Present after Job submission."
+        },
+        "operationResultRef": {
+          "type": "string",
+          "description": "Name of the PackOperationResult written by the Conductor executor after successful pack-deploy Job completion."
+        },
+        "conditions": {
+          "type": "array",
+          "description": "Standard Kubernetes condition list for this PackExecution.",
+          "items": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}
