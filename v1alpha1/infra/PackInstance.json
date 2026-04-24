@@ -45,6 +45,22 @@
             }
           },
           "additionalProperties": false
+        },
+        "chartVersion": {
+          "type": "string",
+          "description": "Version of the Helm chart that was delivered for this PackInstance. Copied from the ClusterPack at creation time. Absent for kustomize and raw category packs. Decision B."
+        },
+        "chartURL": {
+          "type": "string",
+          "description": "URL of the Helm chart repository. Copied from the ClusterPack at creation time. Absent for kustomize and raw category packs. Decision B."
+        },
+        "chartName": {
+          "type": "string",
+          "description": "Name of the Helm chart that was delivered. Copied from the ClusterPack at creation time. Absent for kustomize and raw category packs. Decision B."
+        },
+        "helmVersion": {
+          "type": "string",
+          "description": "Version of the Helm SDK used to render the ClusterPack this instance records. Copied from the ClusterPack at creation time. Absent for kustomize and raw category packs. Decision B."
         }
       },
       "additionalProperties": false

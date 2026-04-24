@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schema.ontai.dev/v1alpha1/seam-core/PackReceipt.json",
+  "title": "PackReceipt",
+  "description": "Immutable acknowledgement written by the target cluster Conductor when it confirms delivery of a ClusterPack. Spec is sealed after first write. Carries OCI digest anchors for RBAC and workload layers and Helm chart provenance metadata for helm category packs. conductor-schema.md §10, wrapper-schema.md §8.",
+  "x-ont-layer": "seam-core",
+  "x-ont-stability": "alpha",
+  "x-ont-namespace": "ont-system",
+  "x-ont-depends-on": ["infra/ClusterPack", "infra/PackInstance"],
+  "type": "object",
+  "required": ["spec"],
+  "properties": {
+    "spec": {
+      "type": "object",
+      "description": "PackReceipt specification. Written once by the target cluster Conductor on delivery acknowledgement. Immutable after first write per INV-026.",
+      "required": ["clusterPackRef", "targetClusterRef"],
+      "properties": {
+        "clusterPackRef": {
+          "type": "object",
+          "description": "Identifies the specific ClusterPack version this receipt records delivery for.",
+          "required": ["name", "version"],
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "ClusterPack CR name on the management cluster."
+            },
+            "version": {
+              "type": "string",
+              "description": "Semver version of the ClusterPack being delivered."
+            }
+          },
+          "additionalProperties": false
+        },
+        "targetClusterRef": {
+          "type": "string",
+          "description": "Identifies the target cluster this receipt was created on. Matches the cluster-ref flag the Conductor Deployment was started with."
+        },
+        "packSignature": {
+          "type": "string",
+          "description": "Base64-encoded Ed25519 signature written by the management cluster Conductor on the PackInstance CR. Verified before signatureVerified is set to true. INV-026."
+        },
+        "signatureVerified": {
+          "type": "boolean",
+          "description": "True when the target cluster Conductor has successfully verified packSignature against the management cluster public signing key. False is a security incident. wrapper-schema.md §5, conductor-schema.md §10."
+        },
+        "rbacDigest": {
+          "type": "string",
+          "description": "OCI digest of the RBAC layer of the ClusterPack artifact. Durable recovery anchor: allows re-fetching and re-applying the RBAC layer without access to the full artifact. Absent on pre-split ClusterPack receipts."
+        },
+        "workloadDigest": {
+          "type": "string",
+          "description": "OCI digest of the workload layer of the ClusterPack artifact. Durable recovery anchor: allows re-fetching and re-applying the workload layer without access to the full artifact. Absent on pre-split ClusterPack receipts."
+        },
+        "chartVersion": {
+          "type": "string",
+          "description": "Version of the Helm chart that was rendered to produce this ClusterPack. Carried through from the ClusterPack spec. Absent for kustomize and raw category packs. Decision B."
+        },
+        "chartURL": {
+          "type": "string",
+          "description": "URL of the Helm chart repository. Carried through from the ClusterPack spec. Absent for kustomize and raw category packs. Decision B."
+        },
+        "chartName": {
+          "type": "string",
+          "description": "Name of the Helm chart that was rendered. Carried through from the ClusterPack spec. Absent for kustomize and raw category packs. Decision B."
+        },
+        "helmVersion": {
+          "type": "string",
+          "description": "Version of the Helm SDK used to render the ClusterPack. Carried through from the ClusterPack spec. Ensures rendering reproducibility across SDK versions. Absent for kustomize and raw category packs. Decision B."
+        }
+      },
+      "additionalProperties": false
+    },
+    "status": {
+      "type": "object",
+      "description": "PackReceipt runtime status. Maintained by the target cluster Conductor during drift detection loops.",
+      "properties": {
+        "deliveredAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp when the target cluster Conductor first acknowledged delivery of this ClusterPack version."
+        },
+        "driftStatus": {
+          "type": "string",
+          "enum": ["InSync", "Drifted", "Unknown"],
+          "description": "Current drift state of the live cluster relative to the expected state from this ClusterPack version. Updated by the drift detection loop. wrapper-schema.md §8."
+        },
+        "driftSummary": {
+          "type": "string",
+          "description": "Human-readable description of the detected drift. Empty when driftStatus is InSync or Unknown."
+        },
+        "lastDriftCheckAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp of the most recent drift detection check."
+        },
+        "conditions": {
+          "type": "array",
+          "description": "Standard Kubernetes condition list. Types: Delivered, SignatureVerified, Drifted, SecurityViolation. conductor-schema.md §15.",
+          "items": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}
