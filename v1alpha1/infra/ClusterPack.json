@@ -85,6 +85,22 @@
           "items": {
             "type": "string"
           }
+        },
+        "chartVersion": {
+          "type": "string",
+          "description": "Version of the Helm chart used to compile this ClusterPack. Absent for kustomize and raw category packs. Decision B."
+        },
+        "chartURL": {
+          "type": "string",
+          "description": "URL of the Helm chart repository used to compile this ClusterPack. Absent for kustomize and raw category packs. Decision B."
+        },
+        "chartName": {
+          "type": "string",
+          "description": "Name of the Helm chart used to compile this ClusterPack (e.g., nginx-ingress). Absent for kustomize and raw category packs. Decision B."
+        },
+        "helmVersion": {
+          "type": "string",
+          "description": "Version of the Helm SDK used to render this ClusterPack. Records the helm.sh/helm/v3 module version embedded in the Compiler binary at build time. Ensures rendering reproducibility across SDK versions. Absent for kustomize and raw category packs. Decision B."
         }
       },
       "additionalProperties": false

@@ -13,8 +13,21 @@
     "spec": {
       "type": "object",
       "description": "PackOperationResult specification. Written by Conductor execute-mode Job before exit. Immutable after first write; subsequent writes patch in-place.",
-      "required": ["capability", "status"],
+      "required": ["capability", "status", "revision"],
       "properties": {
+        "revision": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Monotonically increasing revision counter for this pack operation sequence. Incremented each time a new result supersedes the previous one. The single-active-revision pattern (Decision E) ensures exactly one PackOperationResult exists per ClusterPack operation sequence at any time -- the previous revision is deleted after the new one is written and dumped to the GraphQuery DB."
+        },
+        "previousRevisionRef": {
+          "type": "string",
+          "description": "Name of the PackOperationResult CR that was deleted when this revision was written. Enables GraphQuery DB chain reconstruction for the full operation history. Absent for revision 1 (no predecessor). Decision E."
+        },
+        "talosClusterOperationResultRef": {
+          "type": "string",
+          "description": "Reserved for future cross-reference to a TalosCluster-scoped OperationResult. Stub field; not populated by any current controller. Decision E."
+        },
         "packExecutionRef": {
           "type": "string",
           "description": "Name of the PackExecution CR that triggered this operation."

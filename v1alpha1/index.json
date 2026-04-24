@@ -1,6 +1,6 @@
 {
   "version": "v1alpha1",
-  "publishedAt": "2026-04-18",
+  "publishedAt": "2026-04-24",
   "stability": "alpha",
   "layers": {
     "shared": [
@@ -163,10 +163,20 @@
         "kind": "PackOperationResult",
         "file": "seam-core/PackOperationResult.json",
         "stability": "alpha",
-        "description": "Immutable result record written by Conductor execute-mode Job after pack-deploy capability completes. Replaces ConfigMap output channel. Versioned across ClusterPack updates. Usable as lineagesink additional data.",
+        "description": "Immutable result record written by Conductor execute-mode Job after pack-deploy capability completes. Replaces ConfigMap output channel. Single-active-revision pattern: exactly one active result per operation sequence. Decision E.",
         "dependsOn": [
           {"group": "infra.ontai.dev", "kind": "PackExecution", "version": "v1alpha1"},
           {"group": "infra.ontai.dev", "kind": "ClusterPack", "version": "v1alpha1"}
+        ]
+      },
+      {
+        "kind": "PackReceipt",
+        "file": "seam-core/PackReceipt.json",
+        "stability": "alpha",
+        "description": "Immutable acknowledgement written by the target cluster Conductor confirming delivery of a ClusterPack. Carries OCI digest anchors and Helm chart provenance for helm category packs. conductor-schema.md §10.",
+        "dependsOn": [
+          {"group": "infra.ontai.dev", "kind": "ClusterPack", "version": "v1alpha1"},
+          {"group": "infra.ontai.dev", "kind": "PackInstance", "version": "v1alpha1"}
         ]
       }
     ],
@@ -268,14 +278,56 @@
           {"group": "shared", "kind": "PhaseModel", "version": "v1alpha1"}
         ]
       }
-    ]
-  },
+    ],
     "infra": [
       {
         "kind": "ClusterPack",
         "file": "infra/ClusterPack.json",
         "stability": "alpha",
-        "description": "Management cluster record of an immutable compiled OCI artifact. Carries rbacDigest and workloadDigest for two-layer RBAC/workload split. wrapper-schema.md §4.",
+        "description": "Management cluster record of an immutable compiled OCI artifact. Carries rbacDigest, workloadDigest, and helm chart provenance for helm category packs. wrapper-schema.md §4.",
+        "dependsOn": []
+      },
+      {
+        "kind": "PackExecution",
+        "file": "infra/PackExecution.json",
+        "stability": "alpha",
+        "description": "Runtime request to apply a ClusterPack to a target cluster. The 4-gate reconciler submits a pack-deploy Job via Kueue after all gates clear. wrapper-schema.md §3.",
+        "dependsOn": [
+          {"group": "infra.ontai.dev", "kind": "ClusterPack", "version": "v1alpha1"}
+        ]
+      },
+      {
+        "kind": "PackInstance",
+        "file": "infra/PackInstance.json",
+        "stability": "alpha",
+        "description": "Records the delivered state of a ClusterPack on a target cluster. Created by the PackExecutionReconciler after successful pack-deploy Job. wrapper-schema.md §3.",
+        "dependsOn": [
+          {"group": "infra.ontai.dev", "kind": "ClusterPack", "version": "v1alpha1"}
+        ]
+      },
+      {
+        "kind": "PackBuild",
+        "file": "infra/PackBuild.json",
+        "stability": "alpha",
+        "description": "Compiler input specification declaring the pack category (helm, kustomize, raw) and category-specific source fields. Read by the Compiler at compile time. T-05.",
+        "dependsOn": []
+      }
+    ],
+    "platform": [
+      {
+        "kind": "TalosCluster",
+        "file": "platform/TalosCluster.json",
+        "stability": "alpha",
+        "description": "Root declaration CRD for a Talos cluster under Seam governance. Mode=bootstrap provisions; mode=import records an existing cluster. On mode=import, role (management or tenant) is mandatory -- enforced by CEL admission validation. T-04a.",
+        "dependsOn": []
+      }
+    ],
+    "guardian": [
+      {
+        "kind": "AuditEvent",
+        "file": "guardian/AuditEvent.json",
+        "stability": "alpha",
+        "description": "Structured audit event emitted by Guardian for every admission decision.",
         "dependsOn": []
       }
     ]
