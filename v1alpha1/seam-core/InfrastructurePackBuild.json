@@ -1,0 +1,126 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schema.ontai.dev/v1alpha1/seam-core/InfrastructurePackBuild.json",
+  "title": "InfrastructurePackBuild",
+  "description": "Compiler input specification for a single pack component. Owned by seam-core; read by the Compiler at compile time and never applied to a cluster as a CR. Declares the category (helm, kustomize, raw) and the category-specific source fields needed to compile an InfrastructureClusterPack OCI artifact. conductor-schema.md §7.",
+  "x-ont-layer": "seam-core",
+  "x-ont-stability": "alpha",
+  "x-ont-namespace": "none",
+  "x-ont-depends-on": [],
+  "type": "object",
+  "required": ["spec"],
+  "properties": {
+    "spec": {
+      "type": "object",
+      "description": "InfrastructurePackBuild specification.",
+      "required": ["componentName", "category"],
+      "properties": {
+        "componentName": {
+          "type": "string",
+          "description": "Logical name of the pack component (e.g., nginx-ingress). Used as the base name for the InfrastructureClusterPack CR and all derived CRs."
+        },
+        "category": {
+          "type": "string",
+          "enum": ["helm", "kustomize", "raw"],
+          "description": "Pack source category. Determines which category-specific fields are required and which are prohibited. helm: renders a Helm chart into manifests. kustomize: applies a Kustomize overlay. raw: uses pre-computed manifests and digests."
+        },
+        "helmSource": {
+          "type": "object",
+          "description": "Helm chart source. Required when category=helm. Must be absent when category is kustomize or raw.",
+          "required": ["url", "chart", "version"],
+          "properties": {
+            "url": {
+              "type": "string",
+              "description": "Helm chart repository URL."
+            },
+            "chart": {
+              "type": "string",
+              "description": "Chart name within the repository."
+            },
+            "version": {
+              "type": "string",
+              "description": "Semantic version of the chart to fetch and render."
+            },
+            "values": {
+              "type": "object",
+              "description": "Helm values to pass during chart rendering.",
+              "additionalProperties": true
+            },
+            "helmVersion": {
+              "type": "string",
+              "description": "Version of the Helm SDK used to render this chart. Records the helm.sh/helm/v3 module version embedded in the Compiler binary at build time. Required when category=helm. Ensures rendering reproducibility across SDK versions."
+            }
+          },
+          "additionalProperties": false
+        },
+        "kustomizeSource": {
+          "type": "object",
+          "description": "Kustomize source. Required when category=kustomize. Must be absent when category is helm or raw.",
+          "required": ["kustomizePath"],
+          "properties": {
+            "kustomizePath": {
+              "type": "string",
+              "description": "Path to the kustomization.yaml file relative to the pack repository root."
+            }
+          },
+          "additionalProperties": false
+        },
+        "rawSource": {
+          "type": "object",
+          "description": "Raw manifest source. Required when category=raw. Must be absent when category is helm or kustomize. Pre-computed digests must be supplied; no rendering is performed.",
+          "required": ["rbacDigest", "workloadDigest"],
+          "properties": {
+            "rbacDigest": {
+              "type": "string",
+              "description": "Pre-computed OCI digest of the RBAC layer OCI artifact."
+            },
+            "workloadDigest": {
+              "type": "string",
+              "description": "Pre-computed OCI digest of the workload layer OCI artifact."
+            }
+          },
+          "additionalProperties": false
+        },
+        "targetClusters": {
+          "type": "array",
+          "description": "List of cluster names to which the compiled InfrastructureClusterPack should be delivered.",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "x-kubernetes-validations": [
+        {
+          "rule": "self.category != 'helm' || has(self.helmSource)",
+          "message": "helmSource is required when category is helm"
+        },
+        {
+          "rule": "self.category != 'helm' || has(self.helmSource.helmVersion)",
+          "message": "helmSource.helmVersion is required when category is helm"
+        },
+        {
+          "rule": "self.category != 'kustomize' || has(self.kustomizeSource)",
+          "message": "kustomizeSource is required when category is kustomize"
+        },
+        {
+          "rule": "self.category != 'raw' || has(self.rawSource)",
+          "message": "rawSource is required when category is raw"
+        },
+        {
+          "rule": "self.category == 'helm' || !has(self.helmSource)",
+          "message": "helmSource must be absent when category is not helm"
+        },
+        {
+          "rule": "self.category == 'kustomize' || !has(self.kustomizeSource)",
+          "message": "kustomizeSource must be absent when category is not kustomize"
+        },
+        {
+          "rule": "self.category == 'raw' || !has(self.rawSource)",
+          "message": "rawSource must be absent when category is not raw"
+        }
+      ]
+    }
+  },
+  "additionalProperties": true
+}
