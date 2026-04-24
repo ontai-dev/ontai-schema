@@ -6,7 +6,7 @@
   "x-ont-layer": "seam-core",
   "x-ont-stability": "alpha",
   "x-ont-namespace": "seam-tenant-{clusterName}",
-  "x-ont-depends-on": ["infra/PackExecution", "infra/ClusterPack"],
+  "x-ont-depends-on": ["infra/PackExecution", "infra/ClusterPack", "seam-core/InfrastructurePackReceipt"],
   "type": "object",
   "required": ["spec"],
   "properties": {
