@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://schema.ontai.dev/v1alpha1/seam-core/InfrastructureTalosCluster.json",
   "title": "InfrastructureTalosCluster",
-  "description": "Root declaration CRD for a Talos cluster under Seam governance. Owned by seam-core; platform operator reconciles instances of this type. Declares whether the cluster is bootstrapped from scratch (mode=bootstrap) or imported from existing infrastructure (mode=import). On mode=import the role field is mandatory and must be one of management or tenant. platform-schema.md §4.",
+  "description": "Root declaration CRD for a Talos cluster under Seam governance. Owned by seam-core; platform operator reconciles instances of this type. Declares whether the cluster is bootstrapped from scratch (mode=bootstrap) or imported from existing infrastructure (mode=import). On mode=import the role field is mandatory. platform-schema.md §4. Decision H.",
   "x-ont-layer": "seam-core",
   "x-ont-stability": "alpha",
   "x-ont-namespace": "seam-system",
@@ -23,30 +23,105 @@
         "role": {
           "type": "string",
           "enum": ["management", "tenant"],
-          "description": "Declares the role of this cluster in the Seam topology. Mandatory on mode=import; absent on mode=bootstrap. management: this cluster is the Seam management cluster. tenant: this cluster is a target cluster governed by the management cluster."
+          "description": "Declares the role of this cluster in the Seam topology. Mandatory on mode=import; absent on mode=bootstrap."
         },
         "talosVersion": {
           "type": "string",
           "description": "Talos OS version for this cluster. Used by the Conductor to select a compatible conductor image per INV-012."
         },
+        "clusterEndpoint": {
+          "type": "string",
+          "description": "Cluster VIP or primary API endpoint IP. Required on mode=import. Optional on mode=bootstrap (derived from bootstrap Job output). Renamed from endpoint."
+        },
+        "nodeAddresses": {
+          "type": "array",
+          "description": "List of node IPs belonging to this cluster. Used by DSNSReconciler to populate A records in the seam DNS zone. platform-schema.md §5.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "infrastructureProvider": {
+          "type": "string",
+          "enum": ["native", "capi", "screen"],
+          "default": "native",
+          "description": "Infrastructure provider backing this cluster. native: standard path (direct bootstrap or CAPI). capi: explicit CAPI alias. screen: reserved for future Screen operator (INV-021); sets ScreenProviderNotImplemented and halts."
+        },
         "capi": {
           "type": "object",
           "description": "CAPI integration settings. When absent the cluster uses the direct bootstrap path.",
+          "required": ["enabled"],
           "properties": {
             "enabled": {
               "type": "boolean",
               "description": "When true the cluster is managed via Cluster API. When false or absent the direct bootstrap path is used."
+            },
+            "talosVersion": {
+              "type": "string",
+              "description": "Talos version for TalosConfigTemplate and CABPT machineconfig generation. Required when enabled=true."
+            },
+            "kubernetesVersion": {
+              "type": "string",
+              "description": "Kubernetes version for TalosControlPlane. Required when enabled=true."
+            },
+            "controlPlane": {
+              "type": "object",
+              "description": "Control plane configuration. Required when enabled=true.",
+              "properties": {
+                "replicas": {
+                  "type": "integer",
+                  "description": "Desired number of control plane nodes."
+                }
+              },
+              "additionalProperties": false
+            },
+            "workers": {
+              "type": "array",
+              "description": "List of worker node pools. Each pool maps to a MachineDeployment + SeamInfrastructureMachineTemplate.",
+              "items": {
+                "type": "object",
+                "required": ["name"],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "Pool identifier. Used as the MachineDeployment name suffix."
+                  },
+                  "replicas": {
+                    "type": "integer",
+                    "description": "Desired number of worker nodes in this pool."
+                  },
+                  "seamInfrastructureMachineNames": {
+                    "type": "array",
+                    "description": "SeamInfrastructureMachine CR names pre-provisioned for this pool.",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "ciliumPackRef": {
+              "type": "object",
+              "description": "Reference to the cluster-specific Cilium ClusterPack. Applied as the first pack after the CAPI cluster reaches Running state. Required when enabled=true. platform-schema.md §2.3.",
+              "required": ["name", "version"],
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "ClusterPack CR name for the Cilium pack."
+                },
+                "version": {
+                  "type": "string",
+                  "description": "ClusterPack version string."
+                }
+              },
+              "additionalProperties": false
             }
           },
           "additionalProperties": false
         },
-        "endpoint": {
-          "type": "string",
-          "description": "API server endpoint for the cluster. Required on mode=import. Optional on mode=bootstrap (derived from Talos machine config)."
-        },
         "kubeconfigSecretRef": {
           "type": "string",
-          "description": "Name of the Secret containing the kubeconfig for this cluster. Required on mode=import. Optional on mode=bootstrap (derived from talosconfig)."
+          "description": "Name of the Secret containing the kubeconfig for this cluster. Required on mode=import. Not used when CAPI manages the lifecycle."
         },
         "talosconfigSecretRef": {
           "type": "string",
@@ -70,28 +145,41 @@
       "type": "object",
       "description": "Runtime status. Written exclusively by the TalosClusterReconciler.",
       "properties": {
-        "phase": {
+        "observedGeneration": {
+          "type": "integer",
+          "description": "Generation of the spec most recently reconciled."
+        },
+        "origin": {
           "type": "string",
-          "description": "Current lifecycle phase of the cluster."
+          "enum": ["bootstrapped", "imported"],
+          "description": "Records how the cluster came to exist. bootstrapped: created via the bootstrap path. imported: adopted via the import path."
         },
-        "ready": {
-          "type": "boolean",
-          "description": "True when the cluster has passed all readiness gates."
-        },
-        "conductorReady": {
-          "type": "boolean",
-          "description": "True when the Conductor agent on this cluster has started and registered its capability manifest. platform-schema.md §12."
+        "capiClusterRef": {
+          "type": "object",
+          "description": "Reference to the owned CAPI Cluster object in the tenant namespace. Only set for CAPI-managed clusters (capi.enabled=true).",
+          "required": ["name"],
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "CAPI Cluster CR name."
+            },
+            "namespace": {
+              "type": "string",
+              "description": "CAPI Cluster namespace."
+            }
+          },
+          "additionalProperties": false
         },
         "conditions": {
           "type": "array",
-          "description": "Standard Kubernetes condition list.",
+          "description": "Standard Kubernetes condition list. Condition types: Ready, Bootstrapping, Bootstrapped, Importing, Degraded, CiliumPending, ControlPlaneUnreachable, PartialWorkerAvailability, ConductorReady, ScreenProviderNotImplemented, PhaseFailed, KubeconfigUnavailable.",
           "items": {
             "type": "object",
             "additionalProperties": true
           }
         }
       },
-      "additionalProperties": true
+      "additionalProperties": false
     }
   },
   "additionalProperties": true

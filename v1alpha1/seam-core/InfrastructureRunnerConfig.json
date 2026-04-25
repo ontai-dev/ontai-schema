@@ -160,6 +160,15 @@
           "type": "string",
           "description": "Pod name of the current Conductor agent leader. Written by the leader on election win. Cleared on leader departure."
         },
+        "phase": {
+          "type": "string",
+          "enum": ["Completed", "Failed"],
+          "description": "Terminal execution phase written by Conductor execute mode. Completed: all steps succeeded. Failed: at least one step failed. Absent while in progress. Platform operators watch this field to detect terminal conditions. conductor-schema.md §17."
+        },
+        "failedStep": {
+          "type": "string",
+          "description": "Name of the first step that reached the Failed phase. Present only when phase=Failed. conductor-schema.md §17."
+        },
         "stepResults": {
           "type": "array",
           "description": "Results of the most recent step executions in the current RunnerConfig generation.",
