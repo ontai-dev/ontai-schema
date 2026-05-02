@@ -131,6 +131,12 @@
           "type": "object",
           "description": "Sealed causal chain record. Authored once at object creation and immutable thereafter. seam-core-schema.md §5, CLAUDE.md Decision 1.",
           "additionalProperties": true
+        },
+        "pkiRotationThresholdDays": {
+          "type": "integer",
+          "default": 30,
+          "minimum": 1,
+          "description": "Days before cert expiry to auto-trigger PKI rotation. When pkiExpiryDate is within this many days of the current time, the TalosCluster reconciler creates a PKIRotation CR automatically. Default 30. platform-schema.md §13."
         }
       },
       "additionalProperties": false,
@@ -177,6 +183,11 @@
             "type": "object",
             "additionalProperties": true
           }
+        },
+        "pkiExpiryDate": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Earliest certificate expiry found across talosconfig and kubeconfig Secrets. Set by the TalosCluster reconciler after reading the stored Secrets. Used to detect approaching PKI expiry. platform-schema.md §13."
         }
       },
       "additionalProperties": false
