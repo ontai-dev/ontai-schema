@@ -18,7 +18,13 @@ The schema covers four layers:
   (DomainIdentity, DomainBoundary, DomainPolicy, DomainRelationship, DomainEvent,
   DomainWorkflow, DomainResource, DomainAudit, DomainSemanticNameService).
 - **seam-core**: Infrastructure domain CRDs under `infrastructure.ontai.dev`
-  (InfrastructureLineageIndex, SeamMembership, DSNSZone).
+  (InfrastructureLineageIndex, InfrastructureTalosCluster, InfrastructureRunnerConfig,
+  InfrastructurePackReceipt, InfrastructureClusterPack, InfrastructurePackExecution,
+  InfrastructurePackInstance, InfrastructurePackBuild, DriftSignal,
+  InfrastructurePolicy, InfrastructureProfile, SeamMembership, DSNSZone).
+  Supersedes infra.ontai.dev (ClusterPack, PackExecution, PackInstance, PackBuild),
+  runner.ontai.dev (RunnerConfig, PackReceipt), and platform.ontai.dev/TalosCluster.
+  Migration complete Phase 2B, 2026-04-25.
 - **app-core**: Application layer CRDs under `app.ontai.dev`
   (AppBoundary, AppIdentity, AppPolicy, AppTopology, AppEventSchema, AppWorkflow,
   AppResourceProfile, AppAuditPolicy, AppProfile).
@@ -81,7 +87,7 @@ Each `file` path is relative to `v1alpha1/`.
 |-------------|------------------------------|--------------------------------------------------------------|
 | shared      | (reusable types)             | Embedded types used by CRDs in all layers                    |
 | domain-core | `core.ontai.dev/v1alpha1`    | Layer 0 abstract domain primitives, no controllers           |
-| seam-core   | `infrastructure.ontai.dev/v1alpha1` | Infrastructure domain CRDs managed by Seam operators  |
+| seam-core   | `infrastructure.ontai.dev/v1alpha1` | All cross-operator CRDs managed by Seam operators (Decision G). Supersedes infra.ontai.dev and runner.ontai.dev. |
 | app-core    | `app.ontai.dev/v1alpha1`     | Application layer CRDs for community operators               |
 
 Cross-layer references always follow the dependency direction:
