@@ -137,6 +137,22 @@
           "default": 30,
           "minimum": 1,
           "description": "Days before cert expiry to auto-trigger PKI rotation. When pkiExpiryDate is within this many days of the current time, the TalosCluster reconciler creates a PKIRotation CR automatically. Default 30. platform-schema.md §13."
+        },
+        "hardeningProfileRef": {
+          "type": "object",
+          "description": "Reference to a HardeningProfile CR to apply at bootstrap. ONT-native path: the platform reconciler creates a NodeMaintenance (operation=hardening-apply, label ontai.dev/hardening-trigger=bootstrap) in seam-tenant-{cluster} after the cluster reaches Ready. CAPI path: MachineConfigPatches and SysctlParams are merged into TalosConfigTemplate at provisioning time. platform-schema.md §11.",
+          "required": ["name"],
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "HardeningProfile CR name."
+            },
+            "namespace": {
+              "type": "string",
+              "description": "HardeningProfile CR namespace. Defaults to the TalosCluster namespace (seam-system) when absent."
+            }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false,
@@ -178,7 +194,7 @@
         },
         "conditions": {
           "type": "array",
-          "description": "Standard Kubernetes condition list. Condition types: Ready, Bootstrapping, Bootstrapped, Importing, Degraded, CiliumPending, ControlPlaneUnreachable, PartialWorkerAvailability, ConductorReady, ScreenProviderNotImplemented, PhaseFailed, KubeconfigUnavailable.",
+          "description": "Standard Kubernetes condition list. Condition types: Ready, Bootstrapping, Bootstrapped, Importing, Degraded, CiliumPending, ControlPlaneUnreachable, PartialWorkerAvailability, ConductorReady, ScreenProviderNotImplemented, PhaseFailed, KubeconfigUnavailable, HardeningApplied.",
           "items": {
             "type": "object",
             "additionalProperties": true
